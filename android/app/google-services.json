@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "120731919247",
+    "project_id": "yajid-connect",
+    "storage_bucket": "yajid-connect.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:120731919247:android:771b0c5098df3ce16ba1fa",
+        "android_client_info": {
+          "package_name": "com.example.myapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA-cLcJqPnfeJvjOOH0IbFiK4nECvEI3u4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

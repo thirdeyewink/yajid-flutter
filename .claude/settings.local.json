@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(flutter pub:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(flutter run:*)",
+      "Bash(flutter clean:*)",
+      "Bash(nc:*)",
+      "Bash(dart analyze:*)",
+      "Bash(timeout 30 flutter run)",
+      "Bash(flutter build:*)",
+      "Bash(flutter test:*)",
+      "WebFetch(domain:www.vecteezy.com)",
+      "Bash(find:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
