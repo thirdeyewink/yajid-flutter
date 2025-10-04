@@ -1,0 +1,347 @@
+import 'package:bloc_test/bloc_test.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
+import 'package:yajid/bloc/auth/auth_bloc.dart';
+import 'package:yajid/bloc/auth/auth_event.dart';
+import 'package:yajid/bloc/auth/auth_state.dart';
+import 'package:yajid/services/user_profile_service.dart';
+import 'package:yajid/services/logging_service.dart';
+import 'package:yajid/core/utils/secure_storage.dart';
+
+// Mock classes
+class MockFirebaseAuth extends Mock implements FirebaseAuth {}
+class MockUser extends Mock implements User {}
+class MockUserCredential extends Mock implements UserCredential {}
+class MockGoogleSignIn extends Mock implements GoogleSignIn {}
+class MockGoogleSignInAccount extends Mock implements GoogleSignInAccount {}
+class MockGoogleSignInAuthentication extends Mock implements GoogleSignInAuthentication {}
+class MockUserProfileService extends Mock implements UserProfileService {}
+class MockLoggingService extends Mock implements LoggingService {}
+class MockSecureStorageService extends Mock implements SecureStorageService {}
+
+// Fake classes for fallback values
+class FakeAuthCredential extends Fake implements AuthCredential {}
+
+void main() {
+  group('AuthBloc', () {
+    late AuthBloc authBloc;
+    late MockFirebaseAuth mockFirebaseAuth;
+    late MockGoogleSignIn mockGoogleSignIn;
+    late MockUserProfileService mockUserProfileService;
+    late MockLoggingService mockLoggingService;
+    late MockSecureStorageService mockSecureStorage;
+    late MockUser mockUser;
+    late MockUserCredential mockUserCredential;
+
+    setUp(() {
+      mockFirebaseAuth = MockFirebaseAuth();
+      mockGoogleSignIn = MockGoogleSignIn();
+      mockUserProfileService = MockUserProfileService();
+      mockLoggingService = MockLoggingService();
+      mockSecureStorage = MockSecureStorageService();
+      mockUser = MockUser();
+      mockUserCredential = MockUserCredential();
+
+      // Register fallback values for mocktail
+      registerFallbackValue(DateTime.now());
+
+      // Set up common mocks BEFORE creating AuthBloc
+      when(() => mockUserCredential.user).thenReturn(mockUser);
+      when(() => mockUser.uid).thenReturn('test-uid');
+      when(() => mockUser.email).thenReturn('test@example.com');
+      when(() => mockUser.displayName).thenReturn('Test User');
+      when(() => mockUserProfileService.createUserProfile(
+        firstName: any(named: 'firstName'),
+        lastName: any(named: 'lastName'),
+        email: any(named: 'email'),
+        phoneNumber: any(named: 'phoneNumber'),
+        birthday: any(named: 'birthday'),
+        gender: any(named: 'gender'),
+      )).thenAnswer((_) async => true);
+      when(() => mockUserProfileService.initializeUserProfile()).thenAnswer((_) async => true);
+      when(() => mockUser.updateDisplayName(any())).thenAnswer((_) async {});
+      when(() => mockLoggingService.info(any())).thenReturn(null);
+      when(() => mockLoggingService.error(any(), any())).thenReturn(null);
+      when(() => mockLoggingService.debug(any())).thenReturn(null);
+      when(() => mockSecureStorage.saveUserCredentials(
+        userId: any(named: 'userId'),
+        email: any(named: 'email'),
+      )).thenAnswer((_) async => true);
+      when(() => mockSecureStorage.clearAuthData()).thenAnswer((_) async => true);
+      // CRITICAL: Set up authStateChanges mock BEFORE creating AuthBloc
+      when(() => mockFirebaseAuth.authStateChanges()).thenAnswer((_) => Stream.value(null));
+
+      authBloc = AuthBloc(
+        firebaseAuth: mockFirebaseAuth,
+        googleSignIn: mockGoogleSignIn,
+        userProfileService: mockUserProfileService,
+        logger: mockLoggingService,
+        secureStorage: mockSecureStorage,
+      );
+    });
+
+    tearDown(() {
+      authBloc.close();
+    });
+
+    test('initial state is AuthInitial', () {
+      expect(authBloc.state, equals(const AuthInitial()));
+    });
+
+    group('AuthStarted', () {
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthUnauthenticated] when user is null',
+        build: () {
+          when(() => mockFirebaseAuth.currentUser).thenReturn(null);
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(const AuthStarted()),
+        expect: () => [
+          const AuthLoading(),
+          const AuthUnauthenticated(),
+        ],
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthAuthenticated] when user exists',
+        build: () {
+          when(() => mockFirebaseAuth.currentUser).thenReturn(mockUser);
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(const AuthStarted()),
+        expect: () => [
+          const AuthLoading(),
+          AuthAuthenticated(user: mockUser),
+        ],
+      );
+    });
+
+    group('AuthSignInRequested', () {
+      const email = 'test@example.com';
+      const password = 'password123';
+
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthAuthenticated] when sign in succeeds',
+        build: () {
+          when(() => mockFirebaseAuth.signInWithEmailAndPassword(
+            email: email,
+            password: password,
+          )).thenAnswer((_) async => mockUserCredential);
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(const AuthSignInRequested(
+          email: email,
+          password: password,
+        )),
+        expect: () => [
+          const AuthLoading(),
+          AuthAuthenticated(user: mockUser),
+        ],
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthError] when sign in fails',
+        build: () {
+          when(() => mockFirebaseAuth.signInWithEmailAndPassword(
+            email: email,
+            password: password,
+          )).thenThrow(FirebaseAuthException(
+            code: 'user-not-found',
+            message: 'User not found',
+          ));
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(const AuthSignInRequested(
+          email: email,
+          password: password,
+        )),
+        expect: () => [
+          const AuthLoading(),
+          const AuthError(message: 'No user found with this email address.'),
+        ],
+      );
+    });
+
+    group('AuthSignUpRequested', () {
+      final signUpEvent = AuthSignUpRequested(
+        email: 'test@example.com',
+        password: 'password123',
+        firstName: 'John',
+        lastName: 'Doe',
+        phoneNumber: '+1234567890',
+        birthday: DateTime(1990, 1, 1),
+        gender: 'Male',
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthAuthenticated] when sign up succeeds',
+        build: () {
+          when(() => mockFirebaseAuth.createUserWithEmailAndPassword(
+            email: signUpEvent.email,
+            password: signUpEvent.password,
+          )).thenAnswer((_) async => mockUserCredential);
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(signUpEvent),
+        expect: () => [
+          const AuthLoading(),
+          AuthAuthenticated(user: mockUser),
+        ],
+        verify: (_) {
+          verify(() => mockUser.updateDisplayName('John Doe')).called(1);
+          verify(() => mockUserProfileService.createUserProfile(
+            firstName: 'John',
+            lastName: 'Doe',
+            email: 'test@example.com',
+            phoneNumber: '+1234567890',
+            birthday: any(named: 'birthday'),
+            gender: 'Male',
+          )).called(1);
+        },
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthError] when sign up fails',
+        build: () {
+          when(() => mockFirebaseAuth.createUserWithEmailAndPassword(
+            email: signUpEvent.email,
+            password: signUpEvent.password,
+          )).thenThrow(FirebaseAuthException(
+            code: 'email-already-in-use',
+            message: 'Email already in use',
+          ));
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(signUpEvent),
+        expect: () => [
+          const AuthLoading(),
+          const AuthError(message: 'An account already exists with this email address.'),
+        ],
+      );
+    });
+
+    group('AuthGoogleSignInRequested', () {
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthAuthenticated] when Google sign in succeeds',
+        build: () {
+          final mockGoogleUser = MockGoogleSignInAccount();
+          final mockGoogleAuth = MockGoogleSignInAuthentication();
+
+          when(() => mockGoogleSignIn.signIn()).thenAnswer((_) async => mockGoogleUser);
+          when(() => mockGoogleUser.authentication).thenAnswer((_) async => mockGoogleAuth);
+          when(() => mockGoogleAuth.accessToken).thenReturn('access-token');
+          when(() => mockGoogleAuth.idToken).thenReturn('id-token');
+          when(() => mockFirebaseAuth.signInWithCredential(any()))
+              .thenAnswer((_) async => mockUserCredential);
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(const AuthGoogleSignInRequested()),
+        expect: () => [
+          const AuthLoading(),
+          AuthAuthenticated(user: mockUser),
+        ],
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthError] when Google sign in fails',
+        build: () {
+          when(() => mockGoogleSignIn.signIn()).thenThrow(Exception('Google Sign In failed'));
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(const AuthGoogleSignInRequested()),
+        expect: () => [
+          const AuthLoading(),
+          const AuthError(message: 'Google sign in failed'),
+        ],
+      );
+    });
+
+    group('AuthPasswordResetRequested', () {
+      const email = 'test@example.com';
+
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthPasswordResetSent] when password reset succeeds',
+        build: () {
+          when(() => mockFirebaseAuth.sendPasswordResetEmail(email: email))
+              .thenAnswer((_) async {});
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(const AuthPasswordResetRequested(email: email)),
+        expect: () => [
+          const AuthLoading(),
+          const AuthPasswordResetSent(email: email),
+        ],
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthLoading, AuthError] when password reset fails',
+        build: () {
+          when(() => mockFirebaseAuth.sendPasswordResetEmail(email: email))
+              .thenThrow(FirebaseAuthException(
+                code: 'user-not-found',
+                message: 'User not found',
+              ));
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(const AuthPasswordResetRequested(email: email)),
+        expect: () => [
+          const AuthLoading(),
+          const AuthError(message: 'No user found with this email address.'),
+        ],
+      );
+    });
+
+    group('AuthSignOutRequested', () {
+      blocTest<AuthBloc, AuthState>(
+        'calls sign out methods when sign out succeeds',
+        build: () {
+          when(() => mockFirebaseAuth.signOut()).thenAnswer((_) async {});
+          when(() => mockGoogleSignIn.signOut()).thenAnswer((_) async => null);
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(const AuthSignOutRequested()),
+        expect: () => [],
+        verify: (_) {
+          verify(() => mockFirebaseAuth.signOut()).called(1);
+          verify(() => mockGoogleSignIn.signOut()).called(1);
+          verify(() => mockSecureStorage.clearAuthData()).called(1);
+        },
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthError] when sign out fails',
+        build: () {
+          when(() => mockFirebaseAuth.signOut()).thenThrow(Exception('Sign out failed'));
+          return authBloc;
+        },
+        act: (bloc) => bloc.add(const AuthSignOutRequested()),
+        expect: () => [
+          const AuthError(message: 'Sign out failed'),
+        ],
+      );
+    });
+
+    group('AuthUserChanged', () {
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthAuthenticated] when user is not null',
+        build: () => authBloc,
+        act: (bloc) => bloc.add(AuthUserChanged(mockUser)),
+        expect: () => [
+          AuthAuthenticated(user: mockUser),
+        ],
+      );
+
+      blocTest<AuthBloc, AuthState>(
+        'emits [AuthUnauthenticated] when user is null',
+        build: () => authBloc,
+        act: (bloc) => bloc.add(const AuthUserChanged(null)),
+        expect: () => [
+          const AuthUnauthenticated(),
+        ],
+      );
+    });
+  });
+}

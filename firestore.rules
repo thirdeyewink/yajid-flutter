@@ -1,0 +1,233 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isParticipant(participants) {
+      return isAuthenticated() && request.auth.uid in participants;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Users collection - users can only read/write their own data
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId);
+      allow update, delete: if isOwner(userId);
+
+      // Bookmarks subcollection - users can read/write their own bookmarks
+      match /bookmarks/{bookmarkId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Rated subcollection - users can read/write their own ratings
+      match /rated/{ratedId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // User profiles - read public, write own
+    match /userProfiles/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId);
+      allow update, delete: if isOwner(userId);
+    }
+
+    // Chats - only participants can read/write
+    match /chats/{chatId} {
+      allow read: if isAuthenticated() &&
+                     request.auth.uid in resource.data.participants;
+      allow create: if isAuthenticated() &&
+                       request.auth.uid in request.resource.data.participants;
+      allow update: if isAuthenticated() &&
+                       request.auth.uid in resource.data.participants;
+      allow delete: if false; // Prevent chat deletion
+
+      // Messages subcollection
+      match /messages/{messageId} {
+        allow read: if isAuthenticated() &&
+                       request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+        allow create: if isAuthenticated() &&
+                         request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants &&
+                         request.resource.data.senderId == request.auth.uid;
+        allow update, delete: if isAuthenticated() &&
+                                 resource.data.senderId == request.auth.uid;
+      }
+    }
+
+    // Recommendations - global content, read by all authenticated users
+    // Create/update/delete restricted to admin only
+    match /recommendations/{recId} {
+      allow read: if isAuthenticated();
+      // TEMPORARY: Allow all authenticated users to create for development/seeding
+      // TODO: Change back to `if isAdmin()` for production
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin(); // Admin only
+    }
+
+    // Bookmarks - read/write own only
+    match /bookmarks/{userId}/{bookmarkId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Ratings - read all, write own
+    match /ratings/{ratingId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+                       request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() &&
+                               resource.data.userId == request.auth.uid;
+    }
+
+    // Gamification collections - managed by Cloud Functions
+    // User points - read own, write via Cloud Functions only for security
+    match /user_points/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if false; // Cloud Functions only
+    }
+
+    // User levels - read own, write via Cloud Functions only for security
+    match /user_levels/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if false; // Cloud Functions only
+    }
+
+    // User badges - read own, write via Cloud Functions only for security
+    match /user_badges/{badgeId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow write: if false; // Cloud Functions only
+    }
+
+    // Points transactions - read own, write via Cloud Functions only for security
+    match /points_transactions/{transactionId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow write: if false; // Cloud Functions only
+    }
+
+    // Daily points limit - read/write via Cloud Functions only for security
+    match /daily_points_limit/{limitId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Cloud Functions only
+    }
+
+    // User stats - read own, write via Cloud Functions only (for login streaks, friend counts, etc.)
+    match /user_stats/{userId} {
+      allow read: if isOwner(userId);
+      allow write: if false; // Cloud Functions only
+    }
+
+    // Leaderboard - read all, write via Cloud Functions only
+    match /leaderboard/{entryId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Cloud Functions only
+    }
+
+    // Badges (definitions) - read all, write admin only
+    match /badges/{badgeId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // Events - read all, write own
+    match /events/{eventId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+                       request.resource.data.createdBy == request.auth.uid;
+      allow update, delete: if isAuthenticated() &&
+                               resource.data.createdBy == request.auth.uid;
+    }
+
+    // Notifications - read/write own only
+    match /notifications/{userId}/{notificationId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Businesses - read all, write own
+    match /businesses/{businessId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+                       request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if isAuthenticated() &&
+                               resource.data.ownerId == request.auth.uid;
+    }
+
+    // Groups - read all, write participants
+    match /groups/{groupId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+                       request.auth.uid in request.resource.data.members;
+      allow update: if isAuthenticated() &&
+                       request.auth.uid in resource.data.members;
+      allow delete: if isAuthenticated() &&
+                       resource.data.createdBy == request.auth.uid;
+    }
+
+    // Venues - read all active venues, write own
+    match /venues/{venueId} {
+      allow read: if isAuthenticated() && resource.data.isActive == true;
+      allow create: if isAuthenticated() &&
+                       request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if isAuthenticated() &&
+                               resource.data.ownerId == request.auth.uid;
+    }
+
+    // Venue reviews - read all, write own
+    match /venue_reviews/{reviewId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+                       request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() &&
+                               resource.data.userId == request.auth.uid;
+    }
+
+    // Bookings - read own, write own
+    match /bookings/{bookingId} {
+      allow read: if isAuthenticated() &&
+                     (resource.data.userId == request.auth.uid ||
+                      get(/databases/$(database)/documents/venues/$(resource.data.venueId)).data.ownerId == request.auth.uid);
+      allow create: if isAuthenticated() &&
+                       request.resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() &&
+                       (resource.data.userId == request.auth.uid ||
+                        get(/databases/$(database)/documents/venues/$(resource.data.venueId)).data.ownerId == request.auth.uid);
+      allow delete: if isAuthenticated() &&
+                       resource.data.userId == request.auth.uid;
+    }
+
+    // Payments - read own only
+    match /payments/{paymentId} {
+      allow read: if isAuthenticated() &&
+                     resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() &&
+                       request.resource.data.userId == request.auth.uid;
+      allow update: if false; // Payments should not be updated directly
+      allow delete: if false; // Payments should not be deleted
+    }
+
+    // Transactions - read own only
+    match /transactions/{transactionId} {
+      allow read: if isAuthenticated() &&
+                     resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() &&
+                       request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false; // Transactions are immutable
+    }
+
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
