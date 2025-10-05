@@ -1,0 +1,84 @@
+name: Coverage Badge
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  coverage-badge:
+    name: Generate Coverage Badge
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run tests with coverage
+        run: flutter test --coverage
+
+      - name: Extract coverage percentage
+        id: coverage
+        run: |
+          if command -v lcov &> /dev/null; then
+            COVERAGE=$(lcov --summary coverage/lcov.info 2>&1 | grep "lines" | awk '{print $2}' | sed 's/%//')
+          else
+            # Fallback: calculate using Python
+            COVERAGE=$(python3 -c "
+          import re
+          with open('coverage/lcov.info', 'r') as f:
+              content = f.read()
+              lf_matches = re.findall(r'^LF:(\d+)', content, re.MULTILINE)
+              lh_matches = re.findall(r'^LH:(\d+)', content, re.MULTILINE)
+              total_lines = sum(int(x) for x in lf_matches)
+              hit_lines = sum(int(x) for x in lh_matches)
+              percentage = (hit_lines / total_lines * 100) if total_lines > 0 else 0
+              print(f'{percentage:.1f}')
+          ")
+          fi
+          echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
+          echo "📊 Coverage: $COVERAGE%"
+
+      - name: Create coverage badge
+        uses: schneegans/dynamic-badges-action@v1.7.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: ${{ secrets.GIST_ID }}
+          filename: yajid-coverage.json
+          label: coverage
+          message: ${{ steps.coverage.outputs.coverage }}%
+          valColorRange: ${{ steps.coverage.outputs.coverage }}
+          maxColorRange: 100
+          minColorRange: 0
+
+      - name: Comment coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const coverage = '${{ steps.coverage.outputs.coverage }}';
+            const comment = `## 📊 Coverage Report
+
+            Current coverage: **${coverage}%**
+
+            ${coverage < 80 ? '⚠️ Coverage is below 80% target' : '✅ Coverage meets 80% target'}
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

@@ -1,0 +1,131 @@
+name: Flutter Deploy
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  deploy-android:
+    name: Deploy to Play Store (Internal)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build App Bundle
+        run: flutter build appbundle --release --obfuscate --split-debug-info=build/debug
+
+      - name: Upload to Play Store
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT }}
+          packageName: com.example.ffsf
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed
+
+  deploy-ios:
+    name: Deploy to TestFlight
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build iOS
+        run: flutter build ios --release --obfuscate --split-debug-info=build/debug --no-codesign
+
+      - name: Upload to TestFlight
+        # Add TestFlight upload steps here
+        run: echo "Configure TestFlight upload"
+
+  deploy-web:
+    name: Deploy to Firebase Hosting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Web
+        run: flutter build web --release
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          projectId: yajid-connect
+          channelId: live
+
+  deploy-functions:
+    name: Deploy Cloud Functions
+    runs-on: ubuntu-latest
+    needs: [deploy-android, deploy-ios, deploy-web]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Install dependencies
+        working-directory: ./functions
+        run: npm ci
+
+      - name: Build functions
+        working-directory: ./functions
+        run: npm run build
+
+      - name: Deploy to Firebase
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          firebase deploy --only functions --project yajid-connect --token $FIREBASE_TOKEN
+
+      - name: Deploy Firestore rules
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          firebase deploy --only firestore:rules --project yajid-connect --token $FIREBASE_TOKEN

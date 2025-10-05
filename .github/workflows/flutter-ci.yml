@@ -1,0 +1,120 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        flutter-version: ['3.24.0']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ matrix.flutter-version }}
+          channel: 'stable'
+          cache: true
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Verify Flutter installation
+        run: flutter doctor -v
+
+      - name: Analyze code
+        run: flutter analyze
+
+      - name: Format check
+        run: dart format --set-exit-if-changed .
+
+      - name: Run unit tests
+        run: flutter test --no-pub --coverage --test-randomize-ordering-seed random
+
+      - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest'
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+  build:
+    name: Build APK and Web
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build APK (debug)
+        run: flutter build apk --debug
+
+      - name: Build Web
+        run: flutter build web --release
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: debug-apk
+          path: build/app/outputs/flutter-apk/app-debug.apk
+
+      - name: Upload Web artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: web-build
+          path: build/web/
+
+  cloud-functions:
+    name: Test Cloud Functions
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./functions
+        run: npm ci
+
+      - name: Run ESLint
+        working-directory: ./functions
+        run: npm run lint
+
+      - name: Build TypeScript
+        working-directory: ./functions
+        run: npm run build
+
+      - name: Run tests (if available)
+        working-directory: ./functions
+        run: npm test --if-present
+        continue-on-error: true
