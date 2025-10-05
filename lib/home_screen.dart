@@ -295,10 +295,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   // Left section: Logo
                   AppTheme.buildLogo(size: 55.0),
 
-                  // Center section: Gamification points display (centered)
+                  // Center section: Gamification points display (centered, shifted 10px right)
                   Expanded(
-                    child: Center(
-                      child: BlocBuilder<GamificationBloc, GamificationState>(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 10.0),
+                      child: Center(
+                        child: BlocBuilder<GamificationBloc, GamificationState>(
                         bloc: _gamificationBloc,
                         buildWhen: (previous, current) {
                           // Rebuild whenever state changes to GamificationLoaded
@@ -360,6 +362,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           );
                         },
+                        ),
                       ),
                     ),
                   ),
