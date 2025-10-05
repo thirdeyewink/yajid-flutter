@@ -1,0 +1,81 @@
+# 🚀 Yajid - Complete Flutter Social Media Platform
+
+[![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev/)
+[![Firebase](https://img.shields.io/badge/Firebase-039BE5?style=for-the-badge&logo=Firebase&logoColor=white)](https://firebase.google.com/)
+[![Dart](https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev/)
+
+A comprehensive social media and recommendation platform built with Flutter, featuring real-time messaging, user profiles, content recommendations, and extensive multi-language localization support.
+
+## ✨ Features
+
+### 🔐 **Authentication System**
+- Complete Firebase Auth integration with email/password, Google Sign-In, Apple Sign-In
+- Phone number verification with international country code support
+- Secure user registration with comprehensive profile setup
+
+### 💬 **Real-time Messaging**
+- Chat functionality with user search and message sending
+- Real-time updates via Firestore
+- Message status tracking and read receipts
+- User presence indicators
+
+### 👤 **User Profiles**
+- Comprehensive profiles with social media links integration
+- Skills and preferences management
+- Personalized recommendation categories
+- Profile picture and personal information management
+
+### 🎯 **Recommendation Engine**
+- Content recommendations with ratings and bookmarks
+- Category-based filtering (movies, music, books, sports, etc.)
+- User preference-based content discovery
+- Rating and bookmark system
+
+### 🌐 **Internationalization**
+- Full support for 5 languages: English, Spanish, French, Arabic, Portuguese
+- Dynamic language switching with instant UI updates
+- Complete localization of all user-facing text
+
+### 🎨 **Theme System**
+- Dark/light mode support with instant switching
+- Consistent Material Design 3 implementation
+- Theme-aware UI components throughout the app
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Flutter SDK (^3.9.0)
+- Dart SDK (>=3.2.3 <4.0.0)
+- Firebase project with Authentication and Firestore enabled
+
+### Installation
+
+1. **Clone the repository**
+   \`\`\`bash
+   git clone https://github.com/thirdeyewink/yajid-flutter.git
+   cd yajid-flutter
+   \`\`\`
+
+2. **Install dependencies**
+   \`\`\`bash
+   flutter pub get
+   \`\`\`
+
+3. **Run the application**
+   \`\`\`bash
+   flutter run
+   \`\`\`
+
+## 🌍 Supported Languages
+
+- 🇺🇸 English (en)
+- 🇪🇸 Spanish (es)
+- 🇫🇷 French (fr)
+- 🇸🇦 Arabic (ar)
+- 🇧🇷 Portuguese (pt)
+
+---
+
+<div align="center">
+  <b>🚀 Built with Flutter & Firebase | 🌍 Multi-language Support | 💬 Real-time Messaging</b>
+</div>
