@@ -288,78 +288,83 @@ class _HomeScreenState extends State<HomeScreen> {
           elevation: 1,
           flexibleSpace: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.only(right: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Logo
+                  // Left section: Logo
                   AppTheme.buildLogo(size: 55.0),
-                  const Spacer(),
-                  // Gamification points display
-                  BlocBuilder<GamificationBloc, GamificationState>(
-                    bloc: _gamificationBloc,
-                    buildWhen: (previous, current) {
-                      // Rebuild whenever state changes to GamificationLoaded
-                      return current is GamificationLoaded || current is GamificationLoading;
-                    },
-                    builder: (context, state) {
-                      if (state is GamificationLoaded) {
-                        return PointsDisplayWidget(
-                          userPoints: state.userPoints,
-                          userLevel: state.userLevel,
-                          compact: true,
-                        );
-                      }
-                      if (state is GamificationLoading) {
-                        return const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                        );
-                      }
-                      // Default/fallback display
-                      return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.yellow, width: 1),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.stars, color: Colors.yellow, size: 16),
-                            const SizedBox(width: 4),
-                            const Text(
-                              '000',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
+
+                  // Center section: Gamification points display (centered)
+                  Expanded(
+                    child: Center(
+                      child: BlocBuilder<GamificationBloc, GamificationState>(
+                        bloc: _gamificationBloc,
+                        buildWhen: (previous, current) {
+                          // Rebuild whenever state changes to GamificationLoaded
+                          return current is GamificationLoaded || current is GamificationLoading;
+                        },
+                        builder: (context, state) {
+                          if (state is GamificationLoaded) {
+                            return PointsDisplayWidget(
+                              userPoints: state.userPoints,
+                              userLevel: state.userLevel,
+                              compact: true,
+                            );
+                          }
+                          if (state is GamificationLoading) {
+                            return const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            );
+                          }
+                          // Default/fallback display
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: Colors.yellow, width: 1),
                             ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Colors.yellow,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Text(
-                                'Lv 1',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.stars, color: Colors.yellow, size: 16),
+                                const SizedBox(width: 4),
+                                const Text(
+                                  '000',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
                                 ),
-                              ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.yellow,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Text(
+                                    'Lv 1',
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      );
-                    },
+                          );
+                        },
+                      ),
+                    ),
                   ),
-                  // Notifications icon
+
+                  // Right section: Notifications and Inbox icons
                   IconButton(
                     icon: const Icon(Icons.notifications_outlined, color: Colors.white),
                     onPressed: () {
@@ -369,7 +374,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                   ),
-                  // Inbox icon
                   IconButton(
                     icon: const Icon(Icons.mail_outline, color: Colors.white),
                     onPressed: () {
