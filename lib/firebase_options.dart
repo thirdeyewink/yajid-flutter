@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -64,5 +61,14 @@ class DefaultFirebaseOptions {
     projectId: 'yajid-connect',
     storageBucket: 'yajid-connect.firebasestorage.app',
     iosBundleId: 'ndjinns.yajid.app',
+  );
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyA-cLcJqPnfeJvjOOH0IbFiK4nECvEI3u4',
+    appId: '1:120731919247:web:771b0c5098df3ce16ba1fa',
+    messagingSenderId: '120731919247',
+    projectId: 'yajid-connect',
+    authDomain: 'yajid-connect.firebaseapp.com',
+    storageBucket: 'yajid-connect.firebasestorage.app',
   );
 }

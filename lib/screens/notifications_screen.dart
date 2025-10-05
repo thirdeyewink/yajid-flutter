@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:yajid/home_screen.dart';
+import 'package:yajid/theme/app_theme.dart';
+import 'package:yajid/widgets/shared_bottom_nav.dart';
+import 'package:yajid/l10n/app_localizations.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -7,9 +11,7 @@ class NotificationsScreen extends StatefulWidget {
   State<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
-class _NotificationsScreenState extends State<NotificationsScreen> with TickerProviderStateMixin {
-  late TabController _tabController;
-  final List<String> _notificationTypes = ['All', 'Social', 'Recommendations', 'System'];
+class _NotificationsScreenState extends State<NotificationsScreen> {
 
   // Sample notifications data
   final List<Map<String, dynamic>> _notifications = [
@@ -81,28 +83,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> with TickerPr
     },
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: _notificationTypes.length, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
-  List<Map<String, dynamic>> _getFilteredNotifications() {
-    final selectedType = _notificationTypes[_tabController.index].toLowerCase();
-    if (selectedType == 'all') {
-      return _notifications;
-    }
-    return _notifications.where((notification) {
-      return notification['type'] == selectedType ||
-             (selectedType == 'recommendations' && notification['type'] == 'recommendation');
-    }).toList();
-  }
 
   void _markAsRead(String notificationId) {
     setState(() {
@@ -111,20 +91,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> with TickerPr
     });
   }
 
-  void _markAllAsRead() {
-    setState(() {
-      for (var notification in _notifications) {
-        notification['isRead'] = true;
-      }
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Center(child: Text('All notifications marked as read')),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
 
   void _deleteNotification(String notificationId) {
     setState(() {
@@ -166,84 +132,35 @@ class _NotificationsScreenState extends State<NotificationsScreen> with TickerPr
 
   @override
   Widget build(BuildContext context) {
-    final unreadCount = _notifications.where((n) => !n['isRead']).length;
-
     return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            const Text('Notifications'),
-            if (unreadCount > 0) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  unreadCount.toString(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ],
+      backgroundColor: AppTheme.screenBackground,
+      appBar: AppTheme.buildAppBar(
+        leading: AppTheme.buildLogo(
+          onTap: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+            );
+          },
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 1,
         actions: [
-          if (unreadCount > 0)
-            TextButton(
-              onPressed: _markAllAsRead,
-              child: const Text(
-                'Mark all read',
-                style: TextStyle(color: Colors.blue),
-              ),
-            ),
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              if (value == 'settings') {
-                _showNotificationSettings();
-              }
+          IconButton(
+            icon: const Icon(Icons.close, color: Colors.white),
+            onPressed: () {
+              Navigator.pop(context);
             },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'settings',
-                child: Row(
-                  children: [
-                    Icon(Icons.settings),
-                    SizedBox(width: 8),
-                    Text('Notification Settings'),
-                  ],
-                ),
-              ),
-            ],
           ),
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: Colors.blue,
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: Colors.blue,
-          tabs: _notificationTypes.map((type) => Tab(text: type)).toList(),
-        ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: _notificationTypes.map((type) => _buildNotificationsList()).toList(),
+      body: _buildNotificationsList(),
+      bottomNavigationBar: const SharedBottomNav(
+        currentIndex: 3, // Notifications index
       ),
     );
   }
 
   Widget _buildNotificationsList() {
-    final filteredNotifications = _getFilteredNotifications();
-
-    if (filteredNotifications.isEmpty) {
+    if (_notifications.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -276,9 +193,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> with TickerPr
 
     return ListView.builder(
       padding: const EdgeInsets.all(8),
-      itemCount: filteredNotifications.length,
+      itemCount: _notifications.length,
       itemBuilder: (context, index) {
-        final notification = filteredNotifications[index];
+        final notification = _notifications[index];
         return _buildNotificationCard(notification);
       },
     );
@@ -304,7 +221,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with TickerPr
           leading: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: notification['color'].withOpacity(0.1),
+              color: (notification['color'] as Color).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
@@ -375,12 +292,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> with TickerPr
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Friend Request'),
+        title: Text(AppLocalizations.of(context)!.friendRequest),
         content: Text(notification['message']),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Decline'),
+            child: Text(AppLocalizations.of(context)!.decline),
           ),
           ElevatedButton(
             onPressed: () {
@@ -393,7 +310,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with TickerPr
                 ),
               );
             },
-            child: const Text('Accept'),
+            child: Text(AppLocalizations.of(context)!.accept),
           ),
         ],
       ),
@@ -404,7 +321,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with TickerPr
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('New Recommendation'),
+        title: Text(AppLocalizations.of(context)!.newRecommendation),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -416,11 +333,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> with TickerPr
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Later'),
+            child: Text(AppLocalizations.of(context)!.later),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('View Details'),
+            child: Text(AppLocalizations.of(context)!.viewDetails),
           ),
         ],
       ),
@@ -431,16 +348,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> with TickerPr
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('New Comment'),
+        title: Text(AppLocalizations.of(context)!.newComment),
         content: Text(notification['message']),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: Text(AppLocalizations.of(context)!.close),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('View Comment'),
+            child: Text(AppLocalizations.of(context)!.viewComment),
           ),
         ],
       ),
@@ -451,7 +368,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with TickerPr
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Weekly Digest'),
+        title: Text(AppLocalizations.of(context)!.weeklyDigest),
         content: const Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -463,11 +380,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> with TickerPr
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Later'),
+            child: Text(AppLocalizations.of(context)!.later),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('View Digest'),
+            child: Text(AppLocalizations.of(context)!.viewDigest),
           ),
         ],
       ),
@@ -478,16 +395,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> with TickerPr
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Trending Near You'),
+        title: Text(AppLocalizations.of(context)!.trendingNearYou),
         content: Text(notification['message']),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: Text(AppLocalizations.of(context)!.close),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Learn More'),
+            child: Text(AppLocalizations.of(context)!.learnMore),
           ),
         ],
       ),
@@ -498,45 +415,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> with TickerPr
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Friend Activity'),
+        title: Text(AppLocalizations.of(context)!.friendActivity),
         content: Text(notification['message']),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: Text(AppLocalizations.of(context)!.close),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('View Profile'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showNotificationSettings() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Notification Settings'),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.settings, size: 48, color: Colors.blue),
-            SizedBox(height: 16),
-            Text('Notification settings coming soon!'),
-            SizedBox(height: 8),
-            Text(
-              'You\'ll be able to customize which notifications you receive.',
-              style: TextStyle(color: Colors.grey),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: Text(AppLocalizations.of(context)!.viewProfile),
           ),
         ],
       ),

@@ -12,6 +12,7 @@ class MessagingService {
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final LoggingService _logger = LoggingService();
 
   // Collections
   String get _usersCollection => 'users';
@@ -67,7 +68,7 @@ class MessagingService {
         return UserModel.fromMap(doc.data()!);
       }
     } catch (e) {
-      logger.error('Error getting user', e);
+      _logger.error('Error getting user', e);
     }
     return null;
   }
@@ -132,7 +133,7 @@ class MessagingService {
       await _firestore.collection(_chatsCollection).doc(chatId).set(chat.toMap());
       return chatId;
     } catch (e) {
-      logger.error('Error creating chat', e);
+      _logger.error('Error creating chat', e);
       return null;
     }
   }
@@ -208,21 +209,55 @@ class MessagingService {
 
       return true;
     } catch (e) {
-      logger.error('Error sending message', e);
+      _logger.error('Error sending message', e);
       return false;
     }
   }
 
-  // Get messages for a chat
-  Stream<List<MessageModel>> getChatMessages(String chatId) {
+  // Get messages for a chat with optional pagination
+  /// [limit] - Maximum number of messages to fetch (default: 50)
+  /// For better performance and memory usage, especially for chats with thousands of messages
+  Stream<List<MessageModel>> getChatMessages(
+    String chatId, {
+    int limit = 50,
+  }) {
     return _firestore
         .collection(_messagesCollection)
         .where('chatId', isEqualTo: chatId)
         .orderBy('timestamp', descending: true)
+        .limit(limit)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => MessageModel.fromMap(doc.data()))
             .toList());
+  }
+
+  // Get paginated messages (for "load more" functionality)
+  /// Use this for implementing infinite scroll/load more in chat UI
+  Future<List<MessageModel>> getChatMessagesPaginated({
+    required String chatId,
+    int limit = 50,
+    DocumentSnapshot? startAfter,
+  }) async {
+    try {
+      Query query = _firestore
+          .collection(_messagesCollection)
+          .where('chatId', isEqualTo: chatId)
+          .orderBy('timestamp', descending: true)
+          .limit(limit);
+
+      if (startAfter != null) {
+        query = query.startAfterDocument(startAfter);
+      }
+
+      final snapshot = await query.get();
+      return snapshot.docs
+          .map((doc) => MessageModel.fromMap(doc.data() as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      _logger.error('Error getting paginated messages', e);
+      return [];
+    }
   }
 
   // Mark messages as read
@@ -250,7 +285,7 @@ class MessagingService {
         'unreadCount.$currentUserId': 0,
       });
     } catch (e) {
-      logger.error('Error marking messages as read', e);
+      _logger.error('Error marking messages as read', e);
     }
   }
 
@@ -260,7 +295,7 @@ class MessagingService {
       await _firestore.collection(_messagesCollection).doc(messageId).delete();
       return true;
     } catch (e) {
-      logger.error('Error deleting message', e);
+      _logger.error('Error deleting message', e);
       return false;
     }
   }
@@ -285,7 +320,7 @@ class MessagingService {
 
       return true;
     } catch (e) {
-      logger.error('Error deleting chat', e);
+      _logger.error('Error deleting chat', e);
       return false;
     }
   }

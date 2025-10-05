@@ -198,6 +198,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get add => 'إضافة';
 
   @override
+  String get discover => 'اعثر';
+
+  @override
   String get calendar => 'التقويم';
 
   @override
@@ -294,4 +297,89 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get businesses => 'أعمال';
+
+  @override
+  String hiUser(String userName) {
+    return 'مرحبا $userName';
+  }
+
+  @override
+  String get youMightLike => 'نعتقد أنك قد تحب';
+
+  @override
+  String get seeAll => 'عرض الكل';
+
+  @override
+  String viewAllCategoryComing(String category) {
+    return 'عرض جميع $category قريباً';
+  }
+
+  @override
+  String get createEvent => 'إنشاء حدث';
+
+  @override
+  String get addEvent => 'إضافة حدث';
+
+  @override
+  String get delete => 'حذف';
+
+  @override
+  String get deleteChats => 'حذف المحادثات';
+
+  @override
+  String get deleteChat => 'حذف المحادثة';
+
+  @override
+  String get eventDate => 'تاريخ الحدث';
+
+  @override
+  String get startTime => 'وقت البدء';
+
+  @override
+  String get friendRequest => 'طلب صداقة';
+
+  @override
+  String get decline => 'رفض';
+
+  @override
+  String get accept => 'قبول';
+
+  @override
+  String get newRecommendation => 'توصية جديدة';
+
+  @override
+  String get later => 'لاحقاً';
+
+  @override
+  String get viewDetails => 'عرض التفاصيل';
+
+  @override
+  String get newComment => 'تعليق جديد';
+
+  @override
+  String get close => 'إغلاق';
+
+  @override
+  String get viewComment => 'عرض التعليق';
+
+  @override
+  String get weeklyDigest => 'ملخص أسبوعي';
+
+  @override
+  String get viewDigest => 'عرض الملخص';
+
+  @override
+  String get trendingNearYou => 'الرائج بالقرب منك';
+
+  @override
+  String get learnMore => 'معرفة المزيد';
+
+  @override
+  String get friendActivity => 'نشاط الأصدقاء';
+
+  @override
+  String get viewProfile => 'عرض الملف الشخصي';
+
+  @override
+  String get retry => 'إعادة المحاولة';
 }

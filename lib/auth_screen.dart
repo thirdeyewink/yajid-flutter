@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:yajid/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:yajid/locale_provider.dart';
-import 'package:yajid/auth_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:country_code_picker/country_code_picker.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:yajid/bloc/auth/auth_bloc.dart';
+import 'package:yajid/bloc/auth/auth_event.dart';
+import 'package:yajid/bloc/auth/auth_state.dart';
 import 'dart:io';
 
 class AuthScreen extends StatefulWidget {
@@ -20,17 +23,18 @@ class _AuthScreenState extends State<AuthScreen> with AutomaticKeepAliveClientMi
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
   final _formKey = GlobalKey<FormState>();
-  final AuthService _authService = AuthService();
   var _isLogin = true;
 
   @override
   bool get wantKeepAlive => true;
   var _enteredEmail = '';
   var _enteredPassword = '';
+  var _enteredFirstName = '';
+  var _enteredLastName = '';
   var _enteredPhoneNumber = '';
   var _selectedCountryCode = '+1';
+  var _selectedGender = '';
   DateTime? _selectedBirthday;
-  var _isLoading = false;
 
   bool _isHoveringLogin = false;
   bool _isHoveringCreateAccount = false;
@@ -72,7 +76,7 @@ class _AuthScreenState extends State<AuthScreen> with AutomaticKeepAliveClientMi
     super.dispose();
   }
 
-  void _submit() async {
+  void _submit() {
     final isValid = _formKey.currentState!.validate();
 
     if (!isValid) {
@@ -81,207 +85,34 @@ class _AuthScreenState extends State<AuthScreen> with AutomaticKeepAliveClientMi
 
     _formKey.currentState!.save();
 
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      if (_isLogin) {
-        await FirebaseAuth.instance.signInWithEmailAndPassword(
+    if (_isLogin) {
+      context.read<AuthBloc>().add(
+        AuthSignInRequested(
           email: _enteredEmail,
           password: _enteredPassword,
-        );
-      } else {
-        // Create user with email and password
-        final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        ),
+      );
+    } else {
+      final fullPhoneNumber = '$_selectedCountryCode$_enteredPhoneNumber';
+      context.read<AuthBloc>().add(
+        AuthSignUpRequested(
           email: _enteredEmail,
           password: _enteredPassword,
-        );
-
-        // Send email verification
-        await userCredential.user?.sendEmailVerification();
-
-        // Show email verification message
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Center(child: Text('Verification email sent to $_enteredEmail')),
-              backgroundColor: Colors.orange,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-
-        // Phone verification is mandatory for signup
-        final fullPhoneNumber = '$_selectedCountryCode$_enteredPhoneNumber';
-        await _verifyPhoneNumber(fullPhoneNumber);
-      }
-    } on FirebaseAuthException catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Center(child: Text(error.message ??
-              AppLocalizations.of(context)!.authenticationFailed)),
-          behavior: SnackBarBehavior.floating,
+          firstName: _enteredFirstName,
+          lastName: _enteredLastName,
+          phoneNumber: fullPhoneNumber,
+          gender: _selectedGender,
+          birthday: _selectedBirthday,
         ),
       );
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _verifyPhoneNumber(String phoneNumber) async {
-    await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: phoneNumber,
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        // Auto-verification (Android only)
-        try {
-          await FirebaseAuth.instance.currentUser?.linkWithCredential(credential);
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Center(child: Text('Phone number verified automatically')),
-                backgroundColor: Colors.green,
-              ),
-            );
-          }
-        } catch (error) {
-          // Phone number already linked or other error
-        }
-        setState(() {
-          _isLoading = false;
-        });
-      },
-      verificationFailed: (FirebaseAuthException error) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Center(child: Text(error.message ?? 'Phone verification failed')),
-            backgroundColor: Colors.red,
-          ),
-        );
-        setState(() {
-          _isLoading = false;
-        });
-      },
-      codeSent: (String verificationId, int? resendToken) {
-        _showPhoneVerificationDialog(verificationId);
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {
-        // Auto-retrieval timeout
-      },
-    );
-  }
-
-  void _showPhoneVerificationDialog(String verificationId) {
-    String verificationCode = '';
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          title: const Text(
-            'Phone Verification Required',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: Colors.black,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'To complete your registration, please enter the 6-digit code sent to $_selectedCountryCode$_enteredPhoneNumber',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.grey.shade300
-                    : Colors.grey.shade600,
-                ),
-              ),
-              const SizedBox(height: 20),
-              TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'Verification Code',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
-                maxLength: 6,
-                onChanged: (value) {
-                  verificationCode = value;
-                },
-              ),
-            ],
-          ),
-          actions: [
-            ElevatedButton(
-              onPressed: () async {
-                if (verificationCode.length == 6) {
-                  Navigator.of(context).pop();
-                  await _verifyPhoneCode(verificationId, verificationCode);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Center(child: Text('Please enter a 6-digit verification code')),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
-              child: const Text('Verify Phone'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _verifyPhoneCode(String verificationId, String verificationCode) async {
-    try {
-      final credential = PhoneAuthProvider.credential(
-        verificationId: verificationId,
-        smsCode: verificationCode,
-      );
-
-      // Link phone credential to the current user account
-      await FirebaseAuth.instance.currentUser?.linkWithCredential(credential);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Center(child: Text('Phone number verified successfully')),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-
-      setState(() {
-        _isLoading = false;
-      });
-    } on FirebaseAuthException catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Center(child: Text(error.message ?? 'Phone verification failed')),
-          backgroundColor: Colors.red,
-        ),
-      );
-      setState(() {
-        _isLoading = false;
-      });
     }
   }
 
 
-  void _resetPassword() async {
+
+
+
+  void _resetPassword() {
     final isValid = _formKey.currentState!.validate();
 
     if (!isValid) {
@@ -290,95 +121,17 @@ class _AuthScreenState extends State<AuthScreen> with AutomaticKeepAliveClientMi
 
     _formKey.currentState!.save();
 
-    try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: _enteredEmail);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Center(child: Text(AppLocalizations.of(context)!.passwordResetEmailSent)),
-        ),
-      );
-    } on FirebaseAuthException catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Center(child: Text(error.message ??
-              AppLocalizations.of(context)!.failedToSendPasswordResetEmail)),
-        ),
-      );
-    }
+    context.read<AuthBloc>().add(
+      AuthPasswordResetRequested(email: _enteredEmail),
+    );
   }
 
-  Future<void> _signInWithGoogle() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final userCredential = await _authService.signInWithGoogle();
-      if (userCredential != null) {
-        // Sign-in successful, user will be redirected by the auth state listener
-      }
-    } on FirebaseAuthException catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Center(child: Text(error.message ?? 'Google Sign-In failed')),
-        ),
-      );
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Center(child: Text('Google Sign-In failed: ${error.toString()}')),
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
+  void _signInWithGoogle() {
+    context.read<AuthBloc>().add(const AuthGoogleSignInRequested());
   }
 
-  Future<void> _signInWithApple() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final userCredential = await _authService.signInWithApple();
-      if (userCredential != null) {
-        // Sign-in successful, user will be redirected by the auth state listener
-      }
-    } on FirebaseAuthException catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Center(child: Text(error.message ?? 'Apple Sign-In failed')),
-        ),
-      );
-    } catch (error) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).clearSnackBars();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Center(child: Text('Apple Sign-In failed: ${error.toString()}')),
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
+  void _signInWithApple() {
+    context.read<AuthBloc>().add(const AuthAppleSignInRequested());
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -396,80 +149,60 @@ class _AuthScreenState extends State<AuthScreen> with AutomaticKeepAliveClientMi
   }
 
   void _showLanguageDialog() {
+    final localeProvider = Provider.of<LocaleProvider>(context, listen: false);
+
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          title: Text(
-            AppLocalizations.of(context)!.selectLanguage,
-            style: const TextStyle(
-              color: Colors.black,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                title: const Text('English'),
-                leading: Radio<Locale>(
-                  value: const Locale('en'),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              title: Text(
+                AppLocalizations.of(context)!.selectLanguage,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
-                onTap: () {
-                  Provider.of<LocaleProvider>(context, listen: false)
-                      .setLocale(const Locale('en'));
-                  Navigator.of(context).pop();
-                },
+                textAlign: TextAlign.center,
               ),
-              ListTile(
-                title: const Text('Español'),
-                leading: Radio<Locale>(
-                  value: const Locale('es'),
+              content: RadioGroup<Locale>(
+                groupValue: localeProvider.locale,
+                onChanged: (Locale? value) {
+                  if (value != null) {
+                    localeProvider.setLocale(value);
+                    Navigator.of(context).pop();
+                  }
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    RadioListTile<Locale>(
+                      title: const Text('English'),
+                      value: const Locale('en'),
+                    ),
+                    RadioListTile<Locale>(
+                      title: const Text('Español'),
+                      value: const Locale('es'),
+                    ),
+                    RadioListTile<Locale>(
+                      title: const Text('Français'),
+                      value: const Locale('fr'),
+                    ),
+                    RadioListTile<Locale>(
+                      title: const Text('العربية'),
+                      value: const Locale('ar'),
+                    ),
+                    RadioListTile<Locale>(
+                      title: const Text('Português'),
+                      value: const Locale('pt'),
+                    ),
+                  ],
                 ),
-                onTap: () {
-                  Provider.of<LocaleProvider>(context, listen: false)
-                      .setLocale(const Locale('es'));
-                  Navigator.of(context).pop();
-                },
               ),
-              ListTile(
-                title: const Text('Français'),
-                leading: Radio<Locale>(
-                  value: const Locale('fr'),
-                ),
-                onTap: () {
-                  Provider.of<LocaleProvider>(context, listen: false)
-                      .setLocale(const Locale('fr'));
-                  Navigator.of(context).pop();
-                },
-              ),
-              ListTile(
-                title: const Text('العربية'),
-                leading: Radio<Locale>(
-                  value: const Locale('ar'),
-                ),
-                onTap: () {
-                  Provider.of<LocaleProvider>(context, listen: false)
-                      .setLocale(const Locale('ar'));
-                  Navigator.of(context).pop();
-                },
-              ),
-              ListTile(
-                title: const Text('Português'),
-                leading: Radio<Locale>(
-                  value: const Locale('pt'),
-                ),
-                onTap: () {
-                  Provider.of<LocaleProvider>(context, listen: false)
-                      .setLocale(const Locale('pt'));
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -478,24 +211,40 @@ class _AuthScreenState extends State<AuthScreen> with AutomaticKeepAliveClientMi
   @override
   Widget build(BuildContext context) {
     super.build(context); // Required for AutomaticKeepAliveClientMixin
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        iconTheme: const IconThemeData(
-          color: Colors.black,
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.language,
+    return BlocConsumer<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is AuthLoading;
+
+        return Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black,
+            iconTheme: const IconThemeData(
               color: Colors.black,
             ),
-            onPressed: _showLanguageDialog,
+            actions: [
+              IconButton(
+                icon: const Icon(
+                  Icons.language,
+                  color: Colors.black,
+                ),
+                onPressed: _showLanguageDialog,
+              ),
+            ],
           ),
-        ],
-      ),
-      body: Center(
+          body: Stack(
+            children: [
+              Center(
         child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -503,8 +252,8 @@ class _AuthScreenState extends State<AuthScreen> with AutomaticKeepAliveClientMi
               // Logo above the card
               Padding(
                 padding: const EdgeInsets.only(bottom: 22.0),
-                child: Image.asset(
-                  'assets/images/logo.jpg',
+                child: SvgPicture.asset(
+                  'assets/images/logo.svg',
                   height: 160,
                   width: 160,
                   fit: BoxFit.contain,
@@ -602,7 +351,9 @@ class _AuthScreenState extends State<AuthScreen> with AutomaticKeepAliveClientMi
                                   }
                                   return null;
                                 },
-                                onSaved: (value) {},
+                                onSaved: (value) {
+                                  _enteredFirstName = value!;
+                                },
                               ),
                               ],
                             ),
@@ -679,7 +430,9 @@ class _AuthScreenState extends State<AuthScreen> with AutomaticKeepAliveClientMi
                                   }
                                   return null;
                                 },
-                                onSaved: (value) {},
+                                onSaved: (value) {
+                                  _enteredLastName = value!;
+                                },
                             ),
                           const SizedBox(height: 16),
                           Column(
@@ -1071,7 +824,9 @@ class _AuthScreenState extends State<AuthScreen> with AutomaticKeepAliveClientMi
                                         AppLocalizations.of(context)!.female)),
                               ],
                               onChanged: (value) {
-                                setState(() {});
+                                setState(() {
+                                  _selectedGender = value!;
+                                });
                               },
                               validator: (value) {
                                 if (value == null) {
@@ -1164,250 +919,282 @@ class _AuthScreenState extends State<AuthScreen> with AutomaticKeepAliveClientMi
                               },
                             ),
                           const SizedBox(height: 12),
-                          if (_isLoading)
-                            Container(
-                              margin: const EdgeInsets.symmetric(vertical: 20),
-                              child: const Column(
+                          BlocConsumer<AuthBloc, AuthState>(
+                            listener: (context, state) {
+                              if (state is AuthError) {
+                                ScaffoldMessenger.of(context).clearSnackBars();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Center(child: Text(state.message)),
+                                    backgroundColor: Colors.red,
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              } else if (state is AuthPasswordResetSent) {
+                                ScaffoldMessenger.of(context).clearSnackBars();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Center(child: Text(AppLocalizations.of(context)!.passwordResetEmailSent)),
+                                    backgroundColor: Colors.green,
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              }
+                            },
+                            builder: (context, state) {
+                              final isLoading = state is AuthLoading;
+
+                              if (isLoading) {
+                                return Container(
+                                  margin: const EdgeInsets.symmetric(vertical: 20),
+                                  child: const Column(
+                                    children: [
+                                      CircularProgressIndicator(
+                                        strokeWidth: 3,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                                      ),
+                                      SizedBox(height: 16),
+                                      Text(
+                                        'Please wait...',
+                                        style: TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+
+                              return Column(
                                 children: [
-                                  CircularProgressIndicator(
-                                    strokeWidth: 3,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
-                                  ),
-                                  SizedBox(height: 16),
-                                  Text(
-                                    'Please wait...',
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 14,
+                                  MouseRegion(
+                                    onEnter: (_) =>
+                                        setState(() => _isHoveringLogin = true),
+                                    onExit: (_) =>
+                                        setState(() => _isHoveringLogin = false),
+                                    child: AnimatedContainer(
+                                      duration: const Duration(milliseconds: 300),
+                                      curve: Curves.easeInOut,
+                                      transform: Matrix4.translationValues(0, _isHoveringLogin ? -3 : 0, 0),
+                                      child: AnimatedScale(
+                                        scale: _isHoveringLogin ? 1.02 : 1.0,
+                                        duration: const Duration(milliseconds: 300),
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(8),
+                                            boxShadow: _isHoveringLogin
+                                              ? [
+                                                  BoxShadow(
+                                                    color: Colors.black.withValues(alpha: 0.2),
+                                                    spreadRadius: 1,
+                                                    blurRadius: 8,
+                                                    offset: const Offset(0, 4),
+                                                  ),
+                                                ]
+                                              : [],
+                                          ),
+                                          child: ElevatedButton(
+                                            onPressed: isLoading ? null : _submit,
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.black,
+                                              foregroundColor: Colors.white,
+                                              minimumSize: const Size(double.infinity, 48),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              elevation: 0,
+                                            ),
+                                            child: Text(
+                                              _isLogin
+                                                  ? AppLocalizations.of(context)!.login
+                                                  : AppLocalizations.of(context)!.signup,
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
+                                  if (_isLogin) ...[
+                                    const SizedBox(height: 16),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Container(
+                                            height: 1,
+                                            color: Colors.grey.shade300,
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                                          child: Text(
+                                            AppLocalizations.of(context)!.or,
+                                            style: TextStyle(
+                                              color: Theme.of(context).brightness == Brightness.dark
+                                                ? Colors.grey.shade300
+                                                : Colors.grey.shade600,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: Container(
+                                            height: 1,
+                                            color: Colors.grey.shade300,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 16),
+                                    // Google Sign-In Button
+                                    MouseRegion(
+                                      onEnter: (_) =>
+                                          setState(() => _isHoveringGoogleSignIn = true),
+                                      onExit: (_) =>
+                                          setState(() => _isHoveringGoogleSignIn = false),
+                                      child: AnimatedContainer(
+                                        duration: const Duration(milliseconds: 200),
+                                        curve: Curves.easeInOut,
+                                        transform: Matrix4.translationValues(0, _isHoveringGoogleSignIn ? -2 : 0, 0),
+                                        child: OutlinedButton.icon(
+                                          onPressed: isLoading ? null : _signInWithGoogle,
+                                          icon: SvgPicture.asset(
+                                            'assets/images/google_icon.svg',
+                                            height: 24,
+                                            width: 24,
+                                            colorFilter: null, // Keep original colors
+                                          ),
+                                          label: Text(
+                                            AppLocalizations.of(context)!.signInWithGoogle,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          style: OutlinedButton.styleFrom(
+                                            backgroundColor: Colors.black,
+                                            foregroundColor: Colors.white,
+                                            side: const BorderSide(color: Colors.black),
+                                            minimumSize: const Size(double.infinity, 48),
+                                            elevation: _isHoveringGoogleSignIn ? 3 : 1,
+                                            animationDuration: const Duration(milliseconds: 200),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    // Apple Sign-In Button
+                                    MouseRegion(
+                                      onEnter: (_) =>
+                                          setState(() => _isHoveringAppleSignIn = true),
+                                      onExit: (_) =>
+                                          setState(() => _isHoveringAppleSignIn = false),
+                                      child: AnimatedContainer(
+                                        duration: const Duration(milliseconds: 200),
+                                        curve: Curves.easeInOut,
+                                        transform: Matrix4.translationValues(0, _isHoveringAppleSignIn ? -2 : 0, 0),
+                                        child: OutlinedButton.icon(
+                                          onPressed: isLoading ? null : (!kIsWeb && (Platform.isIOS || Platform.isMacOS))
+                                              ? _signInWithApple
+                                              : () {
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    const SnackBar(
+                                                      content: Center(child: Text('Apple Sign-In is only available on iOS and macOS')),
+                                                    ),
+                                                  );
+                                                },
+                                          icon: const Icon(Icons.apple, size: 24, color: Colors.white),
+                                          label: Text(
+                                            AppLocalizations.of(context)!.signInWithApple,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                          style: OutlinedButton.styleFrom(
+                                            backgroundColor: Colors.black,
+                                            foregroundColor: Colors.white,
+                                            side: const BorderSide(color: Colors.black),
+                                            minimumSize: const Size(double.infinity, 48),
+                                            elevation: _isHoveringAppleSignIn ? 3 : 1,
+                                            animationDuration: const Duration(milliseconds: 200),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                  ],
+                                  const SizedBox(height: 16),
+                                  MouseRegion(
+                                    onEnter: (_) => setState(
+                                        () => _isHoveringCreateAccount = true),
+                                    onExit: (_) => setState(
+                                        () => _isHoveringCreateAccount = false),
+                                    child: TextButton(
+                                      onPressed: isLoading ? null : () {
+                                        setState(() {
+                                          _isLogin = !_isLogin;
+                                        });
+                                      },
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: _isHoveringCreateAccount
+                                            ? Colors.blue
+                                            : Colors.black,
+                                      ),
+                                      child: AnimatedDefaultTextStyle(
+                                        duration: const Duration(milliseconds: 200),
+                                        style: TextStyle(
+                                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                                          decoration: _isHoveringCreateAccount
+                                              ? TextDecoration.underline
+                                              : TextDecoration.none,
+                                        ),
+                                        child: Text(
+                                            _isLogin
+                                                ? AppLocalizations.of(context)!
+                                                    .createAnAccount
+                                                : AppLocalizations.of(context)!
+                                                    .alreadyHaveAnAccount),
+                                      ),
+                                    ),
+                                  ),
+                                  if (_isLogin)
+                                    MouseRegion(
+                                      onEnter: (_) => setState(
+                                          () => _isHoveringForgotPassword = true),
+                                      onExit: (_) => setState(
+                                          () => _isHoveringForgotPassword = false),
+                                      child: TextButton(
+                                        onPressed: isLoading ? null : _resetPassword,
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: _isHoveringForgotPassword
+                                              ? Colors.blue
+                                              : Colors.black,
+                                        ),
+                                        child: AnimatedDefaultTextStyle(
+                                          duration: const Duration(milliseconds: 200),
+                                          style: TextStyle(
+                                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                                            decoration: _isHoveringForgotPassword
+                                                ? TextDecoration.underline
+                                                : TextDecoration.none,
+                                          ),
+                                          child: Text(
+                                              AppLocalizations.of(context)!
+                                                  .forgotPassword),
+                                        ),
+                                      ),
+                                    ),
                                 ],
-                              ),
-                            ),
-                          if (!_isLoading)
-                            MouseRegion(
-                              onEnter: (_) =>
-                                  setState(() => _isHoveringLogin = true),
-                              onExit: (_) =>
-                                  setState(() => _isHoveringLogin = false),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                                transform: Matrix4.translationValues(0, _isHoveringLogin ? -3 : 0, 0),
-                                child: AnimatedScale(
-                                  scale: _isHoveringLogin ? 1.02 : 1.0,
-                                  duration: const Duration(milliseconds: 300),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8),
-                                      boxShadow: _isHoveringLogin
-                                        ? [
-                                            BoxShadow(
-                                              color: Colors.black.withValues(alpha: 0.2),
-                                              spreadRadius: 1,
-                                              blurRadius: 8,
-                                              offset: const Offset(0, 4),
-                                            ),
-                                          ]
-                                        : [],
-                                    ),
-                                    child: ElevatedButton(
-                                      onPressed: _submit,
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.black,
-                                        foregroundColor: Colors.white,
-                                        minimumSize: const Size(double.infinity, 48),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        elevation: 0,
-                                      ),
-                                      child: Text(
-                                        _isLogin
-                                            ? AppLocalizations.of(context)!.login
-                                            : AppLocalizations.of(context)!.signup,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          if (!_isLoading && _isLogin) ...[
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    height: 1,
-                                    color: Colors.grey.shade300,
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                                  child: Text(
-                                    AppLocalizations.of(context)!.or,
-                                    style: TextStyle(
-                                      color: Theme.of(context).brightness == Brightness.dark
-                                        ? Colors.grey.shade300
-                                        : Colors.grey.shade600,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Container(
-                                    height: 1,
-                                    color: Colors.grey.shade300,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            // Google Sign-In Button
-                            MouseRegion(
-                              onEnter: (_) =>
-                                  setState(() => _isHoveringGoogleSignIn = true),
-                              onExit: (_) =>
-                                  setState(() => _isHoveringGoogleSignIn = false),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                curve: Curves.easeInOut,
-                                transform: Matrix4.translationValues(0, _isHoveringGoogleSignIn ? -2 : 0, 0),
-                                child: OutlinedButton.icon(
-                                  onPressed: _signInWithGoogle,
-                                  icon: SvgPicture.asset(
-                                    'assets/images/google_icon.svg',
-                                    height: 24,
-                                    width: 24,
-                                    colorFilter: null, // Keep original colors
-                                  ),
-                                  label: Text(
-                                    AppLocalizations.of(context)!.signInWithGoogle,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  style: OutlinedButton.styleFrom(
-                                    backgroundColor: Colors.black,
-                                    foregroundColor: Colors.white,
-                                    side: const BorderSide(color: Colors.black),
-                                    minimumSize: const Size(double.infinity, 48),
-                                    elevation: _isHoveringGoogleSignIn ? 3 : 1,
-                                    animationDuration: const Duration(milliseconds: 200),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            // Apple Sign-In Button
-                            MouseRegion(
-                              onEnter: (_) =>
-                                  setState(() => _isHoveringAppleSignIn = true),
-                              onExit: (_) =>
-                                  setState(() => _isHoveringAppleSignIn = false),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                curve: Curves.easeInOut,
-                                transform: Matrix4.translationValues(0, _isHoveringAppleSignIn ? -2 : 0, 0),
-                                child: OutlinedButton.icon(
-                                  onPressed: (Platform.isIOS || Platform.isMacOS)
-                                      ? _signInWithApple
-                                      : () {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(
-                                              content: Center(child: Text('Apple Sign-In is only available on iOS and macOS')),
-                                            ),
-                                          );
-                                        },
-                                  icon: const Icon(Icons.apple, size: 24, color: Colors.white),
-                                  label: Text(
-                                    AppLocalizations.of(context)!.signInWithApple,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  style: OutlinedButton.styleFrom(
-                                    backgroundColor: Colors.black,
-                                    foregroundColor: Colors.white,
-                                    side: const BorderSide(color: Colors.black),
-                                    minimumSize: const Size(double.infinity, 48),
-                                    elevation: _isHoveringAppleSignIn ? 3 : 1,
-                                    animationDuration: const Duration(milliseconds: 200),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-                          if (!_isLoading)
-                            MouseRegion(
-                              onEnter: (_) => setState(
-                                  () => _isHoveringCreateAccount = true),
-                              onExit: (_) => setState(
-                                  () => _isHoveringCreateAccount = false),
-                              child: TextButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _isLogin = !_isLogin;
-                                  });
-                                },
-                                style: TextButton.styleFrom(
-                                  foregroundColor: _isHoveringCreateAccount
-                                      ? Colors.blue
-                                      : Colors.black,
-                                ),
-                                child: AnimatedDefaultTextStyle(
-                                  duration: const Duration(milliseconds: 200),
-                                  style: TextStyle(
-                                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                                    decoration: _isHoveringCreateAccount
-                                        ? TextDecoration.underline
-                                        : TextDecoration.none,
-                                  ),
-                                  child: Text(
-                                      _isLogin
-                                          ? AppLocalizations.of(context)!
-                                              .createAnAccount
-                                          : AppLocalizations.of(context)!
-                                              .alreadyHaveAnAccount),
-                                ),
-                              ),
-                            ),
-                          if (_isLogin)
-                            MouseRegion(
-                              onEnter: (_) => setState(
-                                  () => _isHoveringForgotPassword = true),
-                              onExit: (_) => setState(
-                                  () => _isHoveringForgotPassword = false),
-                              child: TextButton(
-                                onPressed: _resetPassword,
-                                style: TextButton.styleFrom(
-                                  foregroundColor: _isHoveringForgotPassword
-                                      ? Colors.blue
-                                      : Colors.black,
-                                ),
-                                child: AnimatedDefaultTextStyle(
-                                  duration: const Duration(milliseconds: 200),
-                                  style: TextStyle(
-                                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                                    decoration: _isHoveringForgotPassword
-                                        ? TextDecoration.underline
-                                        : TextDecoration.none,
-                                  ),
-                                  child: Text(
-                                      AppLocalizations.of(context)!
-                                          .forgotPassword),
-                                ),
-                              ),
-                            )
+                              );
+                            },
+                          ),
                         ],
                       ),
                     ),
@@ -1419,7 +1206,18 @@ class _AuthScreenState extends State<AuthScreen> with AutomaticKeepAliveClientMi
             ],
           ),
         ),
-      ),
+              ),
+              if (isLoading)
+                Container(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  child: const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

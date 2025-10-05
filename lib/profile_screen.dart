@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:yajid/l10n/app_localizations.dart';
-import 'package:yajid/home_screen.dart';
-import 'package:yajid/screens/discover_screen.dart';
-import 'package:yajid/screens/add_content_screen.dart';
-import 'package:yajid/screens/calendar_screen.dart';
-import 'package:yajid/screens/notifications_screen.dart';
 import 'package:yajid/services/user_profile_service.dart';
-import 'package:yajid/locale_provider.dart';
-import 'package:yajid/theme_provider.dart';
+import 'package:yajid/theme/app_theme.dart';
+import 'package:yajid/screens/gamification_screen.dart';
+import 'package:yajid/services/logging_service.dart';
+import 'package:yajid/settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -19,7 +16,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateMixin {
-  int _currentIndex = 4; // Profile is now at index 4
   final User? user = FirebaseAuth.instance.currentUser;
   final UserProfileService _profileService = UserProfileService();
   late TabController _tabController;
@@ -50,37 +46,8 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
     'books',
   ];
 
-  final List<Map<String, dynamic>> _bookmarks = [
-    {
-      'title': 'Amazing Restaurant',
-      'category': 'Restaurants',
-      'rating': 4.5,
-      'image': 'https://via.placeholder.com/150',
-    },
-    {
-      'title': 'Great Movie',
-      'category': 'Movies',
-      'rating': 4.8,
-      'image': 'https://via.placeholder.com/150',
-    },
-  ];
-
-  final List<Map<String, dynamic>> _ratedItems = [
-    {
-      'title': 'Excellent Book',
-      'category': 'Books',
-      'rating': 5.0,
-      'myRating': 5,
-      'image': 'https://via.placeholder.com/150',
-    },
-    {
-      'title': 'Nice Music Album',
-      'category': 'Music',
-      'rating': 4.2,
-      'myRating': 4,
-      'image': 'https://via.placeholder.com/150',
-    },
-  ];
+  List<Map<String, dynamic>> _bookmarks = [];
+  List<Map<String, dynamic>> _ratedItems = [];
 
   // Skills data
   final Map<String, List<String>> _skills = {
@@ -95,7 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 7, vsync: this);
+    _tabController = TabController(length: 6, vsync: this);
     _initializeUserData();
   }
 
@@ -145,62 +112,65 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
             }
           });
         }
-
-        // Load bookmarks
-        if (profileData['bookmarks'] != null) {
-          _bookmarks.clear();
-          _bookmarks.addAll(List<Map<String, dynamic>>.from(profileData['bookmarks']));
-        }
-
-        // Load rated items
-        if (profileData['ratedItems'] != null) {
-          _ratedItems.clear();
-          _ratedItems.addAll(List<Map<String, dynamic>>.from(profileData['ratedItems']));
-        }
-
-        _isLoading = false;
-      });
-    } else {
-      setState(() {
-        _isLoading = false;
       });
     }
+
+    // Load bookmarks and rated items from Firestore subcollections
+    await _loadBookmarksAndRatings();
+
+    setState(() {
+      _isLoading = false;
+    });
   }
 
-  void _onTabTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
+  Future<void> _loadBookmarksAndRatings() async {
+    if (user == null) return;
 
-    // Handle navigation based on tab
-    switch (index) {
-      case 0:
-        // Recommendations - navigate to home
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
-        break;
-      case 1:
-        // Discover - navigate to discover screen
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const DiscoverScreen()),
-        );
-        break;
-      case 2:
-        // Add - navigate to add content screen
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const AddContentScreen()),
-        );
-        break;
-      case 3:
-        // Calendar - navigate to calendar screen
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const CalendarScreen()),
-        );
-        break;
-      case 4:
-        // Profile - already on profile screen
-        break;
+    try {
+      // Load bookmarks
+      final bookmarksSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user!.uid)
+          .collection('bookmarks')
+          .orderBy('bookmarkedAt', descending: true)
+          .get();
+
+      // Load rated items
+      final ratedSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user!.uid)
+          .collection('rated')
+          .orderBy('ratedAt', descending: true)
+          .get();
+
+      if (mounted) {
+        setState(() {
+          _bookmarks = bookmarksSnapshot.docs.map((doc) {
+            final data = doc.data();
+            return {
+              'title': data['title'] ?? '',
+              'category': data['category'] ?? '',
+              'rating': data['communityRating'] ?? 0.0,
+              'image': data['imageUrl'] ?? 'https://via.placeholder.com/150',
+              'description': data['description'] ?? '',
+            };
+          }).toList();
+
+          _ratedItems = ratedSnapshot.docs.map((doc) {
+            final data = doc.data();
+            return {
+              'title': data['title'] ?? '',
+              'category': data['category'] ?? '',
+              'rating': data['communityRating'] ?? 0.0,
+              'myRating': (data['userRating'] ?? 0.0).toInt(),
+              'image': data['imageUrl'] ?? 'https://via.placeholder.com/150',
+              'description': data['description'] ?? '',
+            };
+          }).toList();
+        });
+      }
+    } catch (e) {
+      logger.error('Error loading bookmarks and ratings', e);
     }
   }
 
@@ -259,7 +229,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
           TextButton(
             onPressed: () async {
               await onSave(controller.text);
-              if (mounted) {
+              if (context.mounted) {
                 Navigator.pop(context);
               }
             },
@@ -365,7 +335,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
                 // Save to Firestore
                 final success = await _profileService.updateSkills(_skills);
 
-                if (success && mounted) {
+                if (success && context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Center(child: Text('Skill added successfully')),
@@ -373,7 +343,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
-                } else if (mounted) {
+                } else if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Center(child: Text('Failed to add skill')),
@@ -383,7 +353,9 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
                   );
                 }
               }
-              Navigator.pop(context);
+              if (context.mounted) {
+                Navigator.pop(context);
+              }
             },
             child: const Text('Add'),
           ),
@@ -418,17 +390,6 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
         ),
       );
     }
-  }
-
-  Widget _buildSettingsTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          _buildSettingsSection(),
-        ],
-      ),
-    );
   }
 
   Widget _buildFriendsTab() {
@@ -486,11 +447,43 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 1,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.black,
+          elevation: 1,
+          flexibleSpace: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  AppTheme.buildLogo(
+                    size: 55.0,
+                    onTap: () {
+                      // Navigate to home (index 0)
+                      if (Navigator.of(context).canPop()) {
+                        Navigator.of(context).popUntil((route) => route.isFirst);
+                      }
+                    },
+                  ),
+                  const Spacer(),
+                  // Settings icon
+                  IconButton(
+                    icon: const Icon(Icons.settings_outlined, color: Colors.white),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
       body: _isLoading
           ? const Center(
@@ -515,7 +508,6 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
                   unselectedLabelColor: Colors.grey,
                   indicatorColor: Colors.blue,
                   tabs: const [
-                    Tab(text: 'Settings'),
                     Tab(text: 'Friends'),
                     Tab(text: 'Info'),
                     Tab(text: 'Preferences'),
@@ -530,7 +522,6 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      _buildSettingsTab(),
                       _buildFriendsTab(),
                       _buildInfoTab(),
                       _buildPreferencesTab(),
@@ -542,42 +533,6 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
                 ),
               ],
             ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Theme.of(context).brightness == Brightness.dark
-            ? Colors.white
-            : Colors.black,
-        selectedItemColor: Theme.of(context).brightness == Brightness.dark
-            ? Colors.black
-            : Colors.white,
-        unselectedItemColor: Theme.of(context).brightness == Brightness.dark
-            ? Colors.black54
-            : Colors.white70,
-        currentIndex: _currentIndex,
-        onTap: _onTabTapped,
-        items: [
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.auto_awesome),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.search),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.add_circle_outline),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.calendar_today_outlined),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.person),
-            label: '',
-          ),
-        ],
-      ),
     );
   }
 
@@ -633,6 +588,26 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Gamification button
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const GamificationScreen()),
+                );
+              },
+              icon: const Icon(Icons.stars),
+              label: const Text('View Your Progress'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
               ),
             ),
           ],
@@ -899,7 +874,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
             const SizedBox(height: 12),
             TextButton.icon(
               onPressed: () {
-                // TODO: Navigate to edit preferences
+                // Show coming soon message for edit preferences feature
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Center(child: Text('Edit preferences feature coming soon')),
@@ -996,7 +971,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
           IconButton(
             icon: const Icon(Icons.bookmark, color: Colors.blue),
             onPressed: () {
-              // TODO: Remove bookmark functionality
+              // Bookmark removal feature - to be implemented
             },
           ),
         ],
@@ -1167,90 +1142,6 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
     );
   }
 
-  Widget _buildSettingsSection() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Settings',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildSettingsTile(
-              Icons.notifications,
-              'Notifications',
-              'Manage your notification preferences',
-              () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const NotificationsScreen()),
-                );
-              },
-            ),
-            _buildSettingsTile(
-              Icons.privacy_tip,
-              'Privacy',
-              'Control your privacy settings',
-              () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Center(child: Text('Privacy settings coming soon')),
-                    backgroundColor: Colors.green,
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              },
-            ),
-            _buildSettingsTile(
-              Icons.language,
-              'Language',
-              'Change app language',
-              () => _showLanguageDialog(),
-            ),
-            _buildSettingsTile(
-              Icons.dark_mode,
-              'Theme',
-              'Switch between light and dark mode',
-              () => _toggleTheme(),
-            ),
-            _buildSettingsTile(
-              Icons.help,
-              'Help & Support',
-              'Get help and contact support',
-              () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Center(child: Text('Help & Support coming soon')),
-                    backgroundColor: Colors.green,
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              },
-            ),
-            _buildSettingsTile(
-              Icons.logout,
-              'Sign Out',
-              'Sign out of your account',
-              () async {
-                await FirebaseAuth.instance.signOut();
-                if (mounted) {
-                  Navigator.of(context).pushReplacementNamed('/');
-                }
-              },
-              textColor: Colors.red,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildFriendsSection() {
     return Card(
       child: Padding(
@@ -1339,96 +1230,4 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
     );
   }
 
-  Widget _buildSettingsTile(IconData icon, String title, String subtitle, VoidCallback onTap, {Color? textColor}) {
-    return ListTile(
-      leading: Icon(icon, color: textColor ?? Colors.blue),
-      title: Text(
-        title,
-        style: TextStyle(
-          fontWeight: FontWeight.w500,
-          color: textColor,
-        ),
-      ),
-      subtitle: Text(subtitle),
-      trailing: const Icon(Icons.chevron_right),
-      onTap: onTap,
-      contentPadding: EdgeInsets.zero,
-    );
-  }
-
-  void _showLanguageDialog() {
-    final localeProvider = Provider.of<LocaleProvider>(context, listen: false);
-    final currentLocale = localeProvider.locale;
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(AppLocalizations.of(context)!.selectLanguage),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildLanguageOption('English', const Locale('en'), currentLocale, localeProvider),
-              _buildLanguageOption('Español', const Locale('es'), currentLocale, localeProvider),
-              _buildLanguageOption('Français', const Locale('fr'), currentLocale, localeProvider),
-              _buildLanguageOption('العربية', const Locale('ar'), currentLocale, localeProvider),
-              _buildLanguageOption('Português', const Locale('pt'), currentLocale, localeProvider),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(AppLocalizations.of(context)!.cancel),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildLanguageOption(String languageName, Locale locale, Locale currentLocale, LocaleProvider localeProvider) {
-    final isSelected = currentLocale.languageCode == locale.languageCode;
-
-    return ListTile(
-      title: Text(languageName),
-      trailing: isSelected ? const Icon(Icons.check, color: Colors.green) : null,
-      onTap: () {
-        localeProvider.setLocale(locale);
-        Navigator.pop(context);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Center(child: Text('Language changed to $languageName')),
-              backgroundColor: Colors.green,
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 2),
-            ),
-          );
-        }
-      },
-      dense: true,
-    );
-  }
-
-  void _toggleTheme() {
-    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-    themeProvider.toggleTheme();
-
-    if (mounted) {
-      final isDark = themeProvider.isDarkMode;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Center(
-            child: Text(isDark
-              ? AppLocalizations.of(context)!.switchToDarkTheme
-              : AppLocalizations.of(context)!.switchToLightTheme
-            ),
-          ),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    }
-  }
 }

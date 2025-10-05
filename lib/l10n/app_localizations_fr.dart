@@ -203,6 +203,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get add => 'Ajouter';
 
   @override
+  String get discover => 'Trouver';
+
+  @override
   String get calendar => 'Calendrier';
 
   @override
@@ -305,4 +308,89 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get businesses => 'Entreprises';
+
+  @override
+  String hiUser(String userName) {
+    return 'Salut $userName';
+  }
+
+  @override
+  String get youMightLike => 'Nous pensons que vous pourriez aimer';
+
+  @override
+  String get seeAll => 'Voir Tout';
+
+  @override
+  String viewAllCategoryComing(String category) {
+    return 'Voir tout $category bientôt disponible';
+  }
+
+  @override
+  String get createEvent => 'Créer un Événement';
+
+  @override
+  String get addEvent => 'Ajouter un Événement';
+
+  @override
+  String get delete => 'Supprimer';
+
+  @override
+  String get deleteChats => 'Supprimer les Discussions';
+
+  @override
+  String get deleteChat => 'Supprimer la Discussion';
+
+  @override
+  String get eventDate => 'Date de l\'Événement';
+
+  @override
+  String get startTime => 'Heure de Début';
+
+  @override
+  String get friendRequest => 'Demande d\'Ami';
+
+  @override
+  String get decline => 'Décliner';
+
+  @override
+  String get accept => 'Accepter';
+
+  @override
+  String get newRecommendation => 'Nouvelle Recommandation';
+
+  @override
+  String get later => 'Plus Tard';
+
+  @override
+  String get viewDetails => 'Voir les Détails';
+
+  @override
+  String get newComment => 'Nouveau Commentaire';
+
+  @override
+  String get close => 'Fermer';
+
+  @override
+  String get viewComment => 'Voir le Commentaire';
+
+  @override
+  String get weeklyDigest => 'Résumé Hebdomadaire';
+
+  @override
+  String get viewDigest => 'Voir le Résumé';
+
+  @override
+  String get trendingNearYou => 'Tendances Près de Vous';
+
+  @override
+  String get learnMore => 'En Savoir Plus';
+
+  @override
+  String get friendActivity => 'Activité des Amis';
+
+  @override
+  String get viewProfile => 'Voir le Profil';
+
+  @override
+  String get retry => 'Réessayer';
 }

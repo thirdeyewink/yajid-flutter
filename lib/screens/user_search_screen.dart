@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:yajid/models/user_model.dart';
 import 'package:yajid/services/messaging_service.dart';
@@ -15,16 +16,27 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
   String _searchQuery = '';
+  Timer? _debounceTimer;
+
+  // Debounce duration to prevent excessive queries
+  static const _debounceDuration = Duration(milliseconds: 500);
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
   void _onSearchChanged(String query) {
-    setState(() {
-      _searchQuery = query.trim();
+    // Cancel previous timer if it exists
+    _debounceTimer?.cancel();
+
+    // Set new timer for debounced search
+    _debounceTimer = Timer(_debounceDuration, () {
+      setState(() {
+        _searchQuery = query.trim();
+      });
     });
   }
 
@@ -77,9 +89,29 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Find Users'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        leading: Padding(
+          padding: const EdgeInsets.fromLTRB(16.0, 4.0, 4.0, 4.0),
+          child: ColorFiltered(
+            colorFilter: const ColorFilter.matrix([
+              -1, 0, 0, 0, 255,  // Invert red
+              0, -1, 0, 0, 255,  // Invert green
+              0, 0, -1, 0, 255,  // Invert blue
+              0, 0, 0, 1, 0,     // Keep alpha
+            ]),
+            child: Image.asset(
+              'assets/images/logo.jpg',
+              height: 64,
+              width: 64,
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
+        title: const Center(child: Text('Find Users')),
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        iconTheme: const IconThemeData(
+          color: Colors.white,
+        ),
         elevation: 1,
       ),
       body: Column(

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:yajid/l10n/app_localizations.dart';
-import 'package:yajid/home_screen.dart';
-import 'package:yajid/profile_screen.dart';
-import 'package:yajid/screens/chat_list_screen.dart';
+import 'package:yajid/theme/app_theme.dart';
+import 'package:yajid/services/recommendation_service.dart';
+import 'package:yajid/models/recommendation_model.dart';
 
 class DiscoverScreen extends StatefulWidget {
   const DiscoverScreen({super.key});
@@ -11,285 +10,179 @@ class DiscoverScreen extends StatefulWidget {
   State<DiscoverScreen> createState() => _DiscoverScreenState();
 }
 
-class _DiscoverScreenState extends State<DiscoverScreen> with TickerProviderStateMixin {
-  int _currentIndex = 1; // Discover tab is index 1
-  final TextEditingController _searchController = TextEditingController();
-  late TabController _categoryTabController;
-  String _selectedFilter = 'All';
-
-  final List<String> _filters = ['All', 'Movies', 'Music', 'Books', 'Restaurants', 'Games'];
-
-  // Sample discover content
-  final List<Map<String, dynamic>> _discoverItems = [
-    {
-      'title': 'Trending Movies This Week',
-      'category': 'Movies',
-      'type': 'collection',
-      'items': [
-        {
-          'title': 'Oppenheimer',
-          'subtitle': 'Christopher Nolan',
-          'rating': 4.8,
-          'image': 'https://via.placeholder.com/150',
-        },
-        {
-          'title': 'Barbie',
-          'subtitle': 'Greta Gerwig',
-          'rating': 4.6,
-          'image': 'https://via.placeholder.com/150',
-        },
-      ],
-    },
-    {
-      'title': 'New Music Releases',
-      'category': 'Music',
-      'type': 'collection',
-      'items': [
-        {
-          'title': 'Midnights',
-          'subtitle': 'Taylor Swift',
-          'rating': 4.9,
-          'image': 'https://via.placeholder.com/150',
-        },
-        {
-          'title': 'Harry\'s House',
-          'subtitle': 'Harry Styles',
-          'rating': 4.7,
-          'image': 'https://via.placeholder.com/150',
-        },
-      ],
-    },
-    {
-      'title': 'Bestselling Books',
-      'category': 'Books',
-      'type': 'collection',
-      'items': [
-        {
-          'title': 'Fourth Wing',
-          'subtitle': 'Rebecca Yarros',
-          'rating': 4.5,
-          'image': 'https://via.placeholder.com/150',
-        },
-        {
-          'title': 'Tomorrow, and Tomorrow, and Tomorrow',
-          'subtitle': 'Gabrielle Zevin',
-          'rating': 4.3,
-          'image': 'https://via.placeholder.com/150',
-        },
-      ],
-    },
-    {
-      'title': 'Popular Restaurants',
-      'category': 'Restaurants',
-      'type': 'collection',
-      'items': [
-        {
-          'title': 'The French Laundry',
-          'subtitle': 'Fine Dining',
-          'rating': 4.9,
-          'image': 'https://via.placeholder.com/150',
-        },
-        {
-          'title': 'Joe\'s Pizza',
-          'subtitle': 'Casual Dining',
-          'rating': 4.4,
-          'image': 'https://via.placeholder.com/150',
-        },
-      ],
-    },
-  ];
+class _DiscoverScreenState extends State<DiscoverScreen> {
+  String _selectedFilter = 'all';
+  final RecommendationService _recommendationService = RecommendationService();
+  Map<String, List<Recommendation>> _categoryGroups = {};
+  bool _isLoading = true;
+  String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _categoryTabController = TabController(length: _filters.length, vsync: this);
+    _loadDiscoverContent();
   }
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    _categoryTabController.dispose();
-    super.dispose();
-  }
-
-  void _onTabTapped(int index) {
+  Future<void> _loadDiscoverContent() async {
     setState(() {
-      _currentIndex = index;
+      _isLoading = true;
+      _errorMessage = null;
     });
 
-    // Handle navigation based on tab
-    switch (index) {
-      case 0:
-        // Recommendations - navigate to home
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
-        break;
-      case 1:
-        // Discover - already on discover screen
-        break;
-      case 2:
-        // Add - show snackbar or navigate to add screen
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Center(child: Text(AppLocalizations.of(context)!.addFeatureComingSoon)),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        break;
-      case 3:
-        // Calendar - show snackbar or navigate to calendar screen
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Center(child: Text(AppLocalizations.of(context)!.calendarFeatureComingSoon)),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-        break;
-      case 4:
-        // Profile - navigate to profile screen
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const ProfileScreen()),
-        );
-        break;
+    try {
+      // Fetch all recommendations
+      final allRecommendations = await _recommendationService.getAllRecommendations();
+
+      // Group by category
+      final Map<String, List<Recommendation>> groups = {};
+      for (final rec in allRecommendations) {
+        if (!groups.containsKey(rec.category)) {
+          groups[rec.category] = [];
+        }
+        groups[rec.category]!.add(rec);
+      }
+
+      if (mounted) {
+        setState(() {
+          _categoryGroups = groups;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Failed to load content: $e';
+          _isLoading = false;
+        });
+      }
     }
   }
 
-  void _onCategoryTabChanged(int index) {
-    setState(() {
-      _selectedFilter = _filters[index];
-    });
-  }
-
-  List<Map<String, dynamic>> _getFilteredItems() {
-    if (_selectedFilter == 'All') {
-      return _discoverItems;
+  List<MapEntry<String, List<Recommendation>>> _getFilteredGroups() {
+    if (_selectedFilter == 'all') {
+      return _categoryGroups.entries.toList();
     }
-    return _discoverItems.where((item) => item['category'] == _selectedFilter).toList();
-  }
-
-  void _onSearchChanged(String query) {
-    // Implement search functionality
-    setState(() {
-      // For now, just trigger a rebuild
-      // In a real app, this would filter the discover items based on the search query
-    });
+    return _categoryGroups.entries
+        .where((entry) => entry.key == _selectedFilter)
+        .toList();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Discover'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 1,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.chat_bubble_outline),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ChatListScreen()),
-              );
-            },
-            tooltip: 'Messages',
-          ),
-        ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(120),
-          child: Column(
-            children: [
-              // Search Bar
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: _onSearchChanged,
-                  decoration: InputDecoration(
-                    hintText: 'Search for movies, music, books...',
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                              _onSearchChanged('');
-                            },
-                          )
-                        : null,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(25),
-                      borderSide: BorderSide.none,
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey.shade100,
-                  ),
-                ),
+      backgroundColor: Colors.white,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.black,
+          elevation: 1,
+          flexibleSpace: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  AppTheme.buildLogo(size: 55.0),
+                  const Spacer(),
+                ],
               ),
-              // Category Tabs
-              TabBar(
-                controller: _categoryTabController,
-                isScrollable: true,
-                labelColor: Colors.blue,
-                unselectedLabelColor: Colors.grey,
-                indicatorColor: Colors.blue,
-                onTap: _onCategoryTabChanged,
-                tabs: _filters.map((filter) => Tab(text: filter)).toList(),
-              ),
-            ],
+            ),
           ),
         ),
       ),
-      body: TabBarView(
-        controller: _categoryTabController,
-        children: _filters.map((filter) => _buildDiscoverContent()).toList(),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Theme.of(context).brightness == Brightness.dark
-            ? Colors.white
-            : Colors.black,
-        selectedItemColor: Theme.of(context).brightness == Brightness.dark
-            ? Colors.black
-            : Colors.white,
-        unselectedItemColor: Theme.of(context).brightness == Brightness.dark
-            ? Colors.black54
-            : Colors.white70,
-        currentIndex: _currentIndex,
-        onTap: _onTabTapped,
-        items: [
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.auto_awesome),
-            label: '',
+      body: Column(
+        children: [
+          // Filter chips
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildFilterChip('all', 'All'),
+                  _buildFilterChip('movies', 'Movies'),
+                  _buildFilterChip('music', 'Music'),
+                  _buildFilterChip('books', 'Books'),
+                  _buildFilterChip('tv shows', 'TV Shows'),
+                  _buildFilterChip('podcasts', 'Podcasts'),
+                  _buildFilterChip('sports', 'Sports'),
+                  _buildFilterChip('videogames', 'Games'),
+                  _buildFilterChip('brands', 'Brands'),
+                  _buildFilterChip('recipes', 'Recipes'),
+                  _buildFilterChip('events', 'Events'),
+                  _buildFilterChip('activities', 'Activities'),
+                  _buildFilterChip('businesses', 'Businesses'),
+                ],
+              ),
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.search),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.add_circle_outline),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.calendar_today_outlined),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.person),
-            label: '',
+          // Content
+          Expanded(
+            child: _buildFindContent(),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDiscoverContent() {
-    final filteredItems = _getFilteredItems();
+  Widget _buildFilterChip(String value, String label) {
+    final isSelected = _selectedFilter == value;
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: FilterChip(
+        label: Text(label),
+        selected: isSelected,
+        onSelected: (selected) {
+          setState(() {
+            _selectedFilter = value;
+          });
+        },
+        backgroundColor: Colors.grey.shade200,
+        selectedColor: Colors.blue.shade100,
+        labelStyle: TextStyle(
+          color: isSelected ? Colors.blue : Colors.black,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+    );
+  }
 
-    if (filteredItems.isEmpty) {
+  Widget _buildFindContent() {
+    // Show loading state
+    if (_isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    // Show error state
+    if (_errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const SizedBox(height: 16),
+            Text(
+              _errorMessage!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _loadDiscoverContent,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final filteredGroups = _getFilteredGroups();
+
+    if (filteredGroups.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -301,18 +194,18 @@ class _DiscoverScreenState extends State<DiscoverScreen> with TickerProviderStat
             ),
             const SizedBox(height: 16),
             Text(
-              'No items found for $_selectedFilter',
+              'No content available',
               style: TextStyle(
                 fontSize: 18,
                 color: Colors.grey.shade600,
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              'Try a different category or search term',
+            const Text(
+              'Try seeding data from Settings > Developer',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey.shade500,
+                color: Colors.grey,
               ),
             ),
           ],
@@ -322,15 +215,19 @@ class _DiscoverScreenState extends State<DiscoverScreen> with TickerProviderStat
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: filteredItems.length,
+      itemCount: filteredGroups.length,
       itemBuilder: (context, index) {
-        final collection = filteredItems[index];
-        return _buildCollectionCard(collection);
+        final categoryGroup = filteredGroups[index];
+        return _buildCollectionCard(categoryGroup);
       },
     );
   }
 
-  Widget _buildCollectionCard(Map<String, dynamic> collection) {
+  Widget _buildCollectionCard(MapEntry<String, List<Recommendation>> categoryGroup) {
+    final category = categoryGroup.key;
+    final items = categoryGroup.value;
+    final categoryTitle = category[0].toUpperCase() + category.substring(1);
+
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       child: Padding(
@@ -343,7 +240,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with TickerProviderStat
               children: [
                 Expanded(
                   child: Text(
-                    collection['title'],
+                    '$categoryTitle (${items.length})',
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -351,7 +248,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with TickerProviderStat
                   ),
                 ),
                 Chip(
-                  label: Text(collection['category']),
+                  label: Text(categoryTitle),
                   backgroundColor: Colors.blue.shade100,
                   labelStyle: const TextStyle(
                     color: Colors.blue,
@@ -365,9 +262,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> with TickerProviderStat
               height: 120,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: collection['items'].length,
+                itemCount: items.length > 10 ? 10 : items.length,
                 itemBuilder: (context, index) {
-                  final item = collection['items'][index];
+                  final item = items[index];
                   return _buildItemCard(item);
                 },
               ),
@@ -379,7 +276,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with TickerProviderStat
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Center(child: Text('View all ${collection['category']} coming soon')),
+                      content: Center(child: Text('View all $categoryTitle coming soon')),
                       backgroundColor: Colors.green,
                       behavior: SnackBarBehavior.floating,
                     ),
@@ -395,7 +292,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with TickerProviderStat
     );
   }
 
-  Widget _buildItemCard(Map<String, dynamic> item) {
+  Widget _buildItemCard(Recommendation item) {
     return Container(
       width: 100,
       margin: const EdgeInsets.only(right: 12),
@@ -416,7 +313,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with TickerProviderStat
           ),
           const SizedBox(height: 4),
           Text(
-            item['title'],
+            item.title,
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
@@ -425,7 +322,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with TickerProviderStat
             overflow: TextOverflow.ellipsis,
           ),
           Text(
-            item['subtitle'],
+            item.creator,
             style: TextStyle(
               fontSize: 10,
               color: Colors.grey.shade600,
@@ -438,7 +335,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> with TickerProviderStat
               const Icon(Icons.star, size: 12, color: Colors.amber),
               const SizedBox(width: 2),
               Text(
-                item['rating'].toString(),
+                item.communityRating.toStringAsFixed(1),
                 style: const TextStyle(fontSize: 10),
               ),
             ],

@@ -66,7 +66,7 @@ import 'app_localizations_pt.dart';
 /// property.
 abstract class AppLocalizations {
   AppLocalizations(String locale)
-    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+      : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
   final String localeName;
 
@@ -89,11 +89,11 @@ abstract class AppLocalizations {
   /// of delegates is preferred or required.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
       <LocalizationsDelegate<dynamic>>[
-        delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ];
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
@@ -101,7 +101,7 @@ abstract class AppLocalizations {
     Locale('en'),
     Locale('es'),
     Locale('fr'),
-    Locale('pt'),
+    Locale('pt')
   ];
 
   /// A friendly greeting.
@@ -464,6 +464,12 @@ abstract class AppLocalizations {
   /// **'Add'**
   String get add;
 
+  /// No description provided for @discover.
+  ///
+  /// In en, this message translates to:
+  /// **'Find'**
+  String get discover;
+
   /// No description provided for @calendar.
   ///
   /// In en, this message translates to:
@@ -655,6 +661,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Businesses'**
   String get businesses;
+
+  /// Greeting with user name
+  ///
+  /// In en, this message translates to:
+  /// **'Hi {userName}'**
+  String hiUser(String userName);
+
+  /// No description provided for @youMightLike.
+  ///
+  /// In en, this message translates to:
+  /// **'We think you might like'**
+  String get youMightLike;
+
+  /// No description provided for @seeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'See All'**
+  String get seeAll;
+
+  /// No description provided for @viewAllCategoryComing.
+  ///
+  /// In en, this message translates to:
+  /// **'View all {category} coming soon'**
+  String viewAllCategoryComing(String category);
+
+  /// No description provided for @createEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Event'**
+  String get createEvent;
+
+  /// No description provided for @addEvent.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Event'**
+  String get addEvent;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// No description provided for @deleteChats.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Chats'**
+  String get deleteChats;
+
+  /// No description provided for @deleteChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Chat'**
+  String get deleteChat;
+
+  /// No description provided for @eventDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Event Date'**
+  String get eventDate;
+
+  /// No description provided for @startTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Time'**
+  String get startTime;
+
+  /// No description provided for @friendRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend Request'**
+  String get friendRequest;
+
+  /// No description provided for @decline.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get decline;
+
+  /// No description provided for @accept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get accept;
+
+  /// No description provided for @newRecommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'New Recommendation'**
+  String get newRecommendation;
+
+  /// No description provided for @later.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get later;
+
+  /// No description provided for @viewDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'View Details'**
+  String get viewDetails;
+
+  /// No description provided for @newComment.
+  ///
+  /// In en, this message translates to:
+  /// **'New Comment'**
+  String get newComment;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
+  /// No description provided for @viewComment.
+  ///
+  /// In en, this message translates to:
+  /// **'View Comment'**
+  String get viewComment;
+
+  /// No description provided for @weeklyDigest.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly Digest'**
+  String get weeklyDigest;
+
+  /// No description provided for @viewDigest.
+  ///
+  /// In en, this message translates to:
+  /// **'View Digest'**
+  String get viewDigest;
+
+  /// No description provided for @trendingNearYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Trending Near You'**
+  String get trendingNearYou;
+
+  /// No description provided for @learnMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Learn More'**
+  String get learnMore;
+
+  /// No description provided for @friendActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend Activity'**
+  String get friendActivity;
+
+  /// No description provided for @viewProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'View Profile'**
+  String get viewProfile;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
 }
 
 class _AppLocalizationsDelegate
@@ -690,9 +858,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   }
 
   throw FlutterError(
-    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
-    'an issue with the localizations generation tool. Please file an issue '
-    'on GitHub with a reproducible sample app and the gen-l10n configuration '
-    'that was used.',
-  );
+      'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+      'an issue with the localizations generation tool. Please file an issue '
+      'on GitHub with a reproducible sample app and the gen-l10n configuration '
+      'that was used.');
 }

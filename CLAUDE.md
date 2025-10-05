@@ -8,12 +8,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Core Features
 - **Authentication System**: Complete Firebase Auth integration with email/password, Google Sign-In, Apple Sign-In, and phone verification
-- **Real-time Messaging**: Chat functionality with user search, message sending, and real-time updates via Firestore
+- **Real-time Messaging**: Chat functionality with inbox navigation drawer (Friends, Groups, Threads, Promotions, Spam, Trash), user search, message sending, and real-time updates via Firestore
 - **User Profiles**: Comprehensive profiles with social media links, skills, preferences, and personalization
-- **Recommendation Engine**: Content recommendations with ratings, bookmarks, and category-based filtering
+- **Recommendation Engine**: Content recommendations with ratings, bookmarks, category-based filtering, and refresh functionality that randomly generates new recommendations from all 11 categories (movies, music, books, tv shows, podcasts, sports, videogames, brands, recipes, events, activities, businesses)
+- **Gamification System**: Points and level tracking displayed in app bar with yellow outline, white text, yellow star icon, and white level badge
 - **Social Features**: User search, friend connections, and community interactions
-- **Content Management**: Add, rate, and organize various types of content (movies, music, books, etc.)
-- **Calendar Integration**: Event management and scheduling features
+- **Content Management**: Add content screen with menu for creating businesses, events, trips, groups, threads, and recipes
+- **Calendar Integration**: Interactive week view with clickable timeslots for event creation and scheduling
+- **Notifications Center**: Notification screen with close button and categorized notifications
 - **Onboarding Flow**: Multi-step user onboarding with preference selection
 
 ## Development Commands
@@ -63,30 +65,41 @@ After modifying `.arb` files in `lib/l10n/`, run:
 - `lib/models/message_model.dart` - Individual message data structure
 
 #### Screens & UI
-- `lib/screens/chat_list_screen.dart` - List of user conversations
+- `lib/screens/chat_list_screen.dart` - Inbox with navigation drawer (Friends, Groups, Threads, Promotions, Spam, Trash) and chat conversations list
 - `lib/screens/chat_screen.dart` - Individual chat conversation interface
 - `lib/screens/user_search_screen.dart` - Search and discover other users
-- `lib/screens/add_content_screen.dart` - Content creation and recommendation submission
+- `lib/screens/add_content_screen.dart` - Content creation with plus menu (add business, create event, new trip, create group, create thread, add recipe)
 - `lib/screens/discover_screen.dart` - Content discovery and exploration
-- `lib/screens/calendar_screen.dart` - Event management and scheduling
-- `lib/screens/notifications_screen.dart` - User notification center
+- `lib/screens/calendar_screen.dart` - Interactive calendar with week view, clickable timeslots, and event creation dialogs
+- `lib/screens/notifications_screen.dart` - User notification center with close button
 
 #### Providers & State Management
 - `lib/locale_provider.dart` - Language selection and internationalization
 - `lib/theme_provider.dart` - Dark/light theme management
 - `lib/onboarding_provider.dart` - User onboarding state management
+- `lib/bloc/gamification/gamification_bloc.dart` - Gamification points and level management with BLoC pattern
+
+#### Widgets & UI Components
+- `lib/widgets/gamification/points_display_widget.dart` - Compact points display in app bar (yellow border, white text, yellow star, white level badge)
+- `lib/widgets/shared_bottom_nav.dart` - Shared bottom navigation bar across screens
+- `lib/theme/app_theme.dart` - Centralized theme configuration with app bar styling and logo widget
+
+#### Utilities & Core
+- `lib/core/utils/validators.dart` - Comprehensive form validation utilities (30+ validators for email, password, phone, names, URLs, ratings, dates, prices, etc.)
 
 #### Localization
 - `lib/l10n/` - Comprehensive localization files for 5 languages (en, es, fr, ar, pt)
 - `lib/firebase_options.dart` - Auto-generated Firebase configuration
 
 ### Dependencies
-- `firebase_core`, `firebase_auth`, `cloud_firestore` - Firebase backend services
+- `firebase_core`, `firebase_auth`, `cloud_firestore`, `firebase_crashlytics` - Firebase backend services
 - `provider` - State management for app-wide state (locale, theme, onboarding)
+- `flutter_bloc`, `bloc`, `equatable` - BLoC pattern for state management
 - `flutter_localizations` & `intl` - Internationalization support (5 languages)
 - `google_sign_in` & `sign_in_with_apple` - Social authentication providers
 - `country_code_picker` - International phone number input
 - `shared_preferences` - Local data persistence
+- `flutter_secure_storage` - Secure storage for sensitive data
 - `flutter_svg` - SVG icon support
 - `logger` - Structured logging system
 
@@ -121,8 +134,13 @@ After modifying `.arb` files in `lib/l10n/`, run:
 
 ### Current State
 - Basic authentication and localization functionality is complete
-- App follows Material Design principles with custom styling
-- Uses Firebase for backend authentication services
+- Gamification system implemented with points and level tracking
+- Interactive calendar with week view and timeslot selection
+- Recommendation engine with 11 categories and refresh functionality
+- Inbox with navigation drawer for message categorization
+- App follows Material Design principles with custom styling and elevated UI elements
+- Uses Firebase for backend authentication services and Firestore for real-time data
+- Firestore indexes configured for optimal query performance
 - Responsive design works on mobile and web platforms
 
 ### Code Style
@@ -135,3 +153,25 @@ After modifying `.arb` files in `lib/l10n/`, run:
 - Firebase is properly initialized in main.dart
 - Google Services configuration files are in place for Android
 - App uses Firebase Auth for user management
+- Firestore security rules configured in firestore.rules
+- Composite indexes defined in firestore.indexes.json for optimized queries (chats collection with participants + updatedAt)
+- Firebase configuration managed in firebase.json
+
+### Recent Improvements
+- **UI Enhancements**: Centered recommendations title, elevated category tags and bookmark buttons, refresh icon for new recommendations
+- **Navigation**: Inbox navigation drawer with 6 categories, close button in notifications screen
+- **Calendar**: Complete week view rewrite with proper column alignment and clickable timeslots
+- **Gamification**: Points display widget with refined styling (yellow border, white text, yellow star, white level badge)
+- **Recommendations**: Expanded from 3 to 24 items across 11 categories with random generation algorithm
+- **Security**: Implemented granular Firestore security rules with role-based access control for all collections
+- **Monitoring**: Enabled Firebase Crashlytics for automatic crash reporting and error tracking
+- **Firestore**: Deployed composite indexes to resolve query performance issues
+- **Loading States**: Added loading indicators to home screen, auth screen (with BlocConsumer), and chat list screen (StreamBuilder)
+- **Form Validation**: Comprehensive validators utility with 30+ validation functions for emails, passwords, names, phone numbers, URLs, ratings, and more
+
+### Security Features
+- **Firestore Security Rules**: Granular permissions protecting user data, chats, recommendations, bookmarks, ratings, gamification, events, notifications, businesses, and groups
+- **Authentication Required**: All database operations require user authentication
+- **Owner-based Access Control**: Users can only modify their own data
+- **Participant-based Chat Security**: Chat messages only accessible to conversation participants
+- **Crash Reporting**: Firebase Crashlytics captures and reports uncaught errors and crashes automatically

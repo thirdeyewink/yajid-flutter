@@ -198,6 +198,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get add => 'Add';
 
   @override
+  String get discover => 'Find';
+
+  @override
   String get calendar => 'Calendar';
 
   @override
@@ -295,4 +298,89 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get businesses => 'Businesses';
+
+  @override
+  String hiUser(String userName) {
+    return 'Hi $userName';
+  }
+
+  @override
+  String get youMightLike => 'We think you might like';
+
+  @override
+  String get seeAll => 'See All';
+
+  @override
+  String viewAllCategoryComing(String category) {
+    return 'View all $category coming soon';
+  }
+
+  @override
+  String get createEvent => 'Create Event';
+
+  @override
+  String get addEvent => 'Add Event';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get deleteChats => 'Delete Chats';
+
+  @override
+  String get deleteChat => 'Delete Chat';
+
+  @override
+  String get eventDate => 'Event Date';
+
+  @override
+  String get startTime => 'Start Time';
+
+  @override
+  String get friendRequest => 'Friend Request';
+
+  @override
+  String get decline => 'Decline';
+
+  @override
+  String get accept => 'Accept';
+
+  @override
+  String get newRecommendation => 'New Recommendation';
+
+  @override
+  String get later => 'Later';
+
+  @override
+  String get viewDetails => 'View Details';
+
+  @override
+  String get newComment => 'New Comment';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get viewComment => 'View Comment';
+
+  @override
+  String get weeklyDigest => 'Weekly Digest';
+
+  @override
+  String get viewDigest => 'View Digest';
+
+  @override
+  String get trendingNearYou => 'Trending Near You';
+
+  @override
+  String get learnMore => 'Learn More';
+
+  @override
+  String get friendActivity => 'Friend Activity';
+
+  @override
+  String get viewProfile => 'View Profile';
+
+  @override
+  String get retry => 'Retry';
 }

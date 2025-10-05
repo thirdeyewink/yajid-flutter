@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:yajid/home_screen.dart';
-import 'package:yajid/profile_screen.dart';
-import 'package:yajid/screens/discover_screen.dart';
-import 'package:yajid/screens/add_content_screen.dart';
+import 'package:yajid/theme/app_theme.dart';
+import 'package:yajid/l10n/app_localizations.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -12,10 +10,10 @@ class CalendarScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
-  int _currentIndex = 3; // Calendar tab is index 3
   DateTime _selectedDate = DateTime.now();
   DateTime _focusedDate = DateTime.now();
-  String _selectedView = 'Month';
+  String _selectedView = 'Agenda';
+  int? _selectedHour;
 
   final List<String> _viewTypes = ['Month', 'Week', 'Agenda'];
 
@@ -66,43 +64,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
     ],
   };
 
-  void _onTabTapped(int index) {
-    setState(() {
-      _currentIndex = index;
-    });
-
-    // Handle navigation based on tab
-    switch (index) {
-      case 0:
-        // Recommendations - navigate to home
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
-        break;
-      case 1:
-        // Discover - navigate to discover screen
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const DiscoverScreen()),
-        );
-        break;
-      case 2:
-        // Add - navigate to add content screen
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const AddContentScreen()),
-        );
-        break;
-      case 3:
-        // Calendar - already on calendar screen
-        break;
-      case 4:
-        // Profile - navigate to profile screen
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const ProfileScreen()),
-        );
-        break;
-    }
-  }
-
   List<Map<String, dynamic>> _getEventsForDay(DateTime day) {
     return _events[DateTime(day.year, day.month, day.day)] ?? [];
   }
@@ -140,46 +101,59 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Calendar'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 1,
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.view_module),
-            onSelected: (value) {
-              setState(() {
-                _selectedView = value;
-              });
-            },
-            itemBuilder: (context) => _viewTypes
-                .map((view) => PopupMenuItem(
-                      value: view,
-                      child: Row(
-                        children: [
-                          Icon(
-                            view == 'Month'
-                                ? Icons.calendar_month
-                                : view == 'Week'
-                                    ? Icons.view_week
-                                    : Icons.list,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(view),
-                        ],
-                      ),
-                    ))
-                .toList(),
+      backgroundColor: AppTheme.screenBackground,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.black,
+          elevation: 1,
+          flexibleSpace: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  AppTheme.buildLogo(size: 55.0),
+                  const Spacer(),
+                  PopupMenuButton<String>(
+                    icon: const Icon(Icons.view_module, color: Colors.white),
+                    onSelected: (value) {
+                      setState(() {
+                        _selectedView = value;
+                      });
+                    },
+                    itemBuilder: (context) => _viewTypes
+                        .map((view) => PopupMenuItem(
+                              value: view,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    view == 'Month'
+                                        ? Icons.calendar_month
+                                        : view == 'Week'
+                                            ? Icons.view_week
+                                            : Icons.list,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(view),
+                                ],
+                              ),
+                            ))
+                        .toList(),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.add, color: Colors.white),
+                    onPressed: () {
+                      _showAddEventDialog();
+                    },
+                  ),
+                ],
+              ),
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              _showAddEventDialog();
-            },
-          ),
-        ],
+        ),
       ),
       body: Column(
         children: [
@@ -190,42 +164,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 : _selectedView == 'Week'
                     ? _buildWeekView()
                     : _buildAgendaView(),
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Theme.of(context).brightness == Brightness.dark
-            ? Colors.white
-            : Colors.black,
-        selectedItemColor: Theme.of(context).brightness == Brightness.dark
-            ? Colors.black
-            : Colors.white,
-        unselectedItemColor: Theme.of(context).brightness == Brightness.dark
-            ? Colors.black54
-            : Colors.white70,
-        currentIndex: _currentIndex,
-        onTap: _onTabTapped,
-        items: [
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.auto_awesome),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.search),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.add_circle_outline),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.calendar_today_outlined),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.person),
-            label: '',
           ),
         ],
       ),
@@ -246,12 +184,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
             icon: const Icon(Icons.chevron_left),
             onPressed: () {
               setState(() {
-                _focusedDate = DateTime(_focusedDate.year, _focusedDate.month - 1);
+                if (_selectedView == 'Week') {
+                  // Go back one week
+                  _focusedDate = _focusedDate.subtract(const Duration(days: 7));
+                } else {
+                  // Go back one month
+                  _focusedDate = DateTime(_focusedDate.year, _focusedDate.month - 1);
+                }
               });
             },
           ),
           Text(
-            '${_getMonthName(_focusedDate.month)} ${_focusedDate.year}',
+            _selectedView == 'Week'
+                ? '${_getMonthName(_focusedDate.month)} ${_focusedDate.day}, ${_focusedDate.year}'
+                : '${_getMonthName(_focusedDate.month)} ${_focusedDate.year}',
             style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -261,7 +207,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
             icon: const Icon(Icons.chevron_right),
             onPressed: () {
               setState(() {
-                _focusedDate = DateTime(_focusedDate.year, _focusedDate.month + 1);
+                if (_selectedView == 'Week') {
+                  // Go forward one week
+                  _focusedDate = _focusedDate.add(const Duration(days: 7));
+                } else {
+                  // Go forward one month
+                  _focusedDate = DateTime(_focusedDate.year, _focusedDate.month + 1);
+                }
               });
             },
           ),
@@ -281,19 +233,245 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Widget _buildWeekView() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.view_week, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'Week view coming soon',
-            style: TextStyle(fontSize: 18, color: Colors.grey),
+    final startOfWeek = _getStartOfWeek(_focusedDate);
+    final hours = List.generate(18, (index) => index + 6);
+
+    return Column(
+      children: [
+        _buildWeekHeader(startOfWeek),
+        Expanded(
+          child: ListView.builder(
+            itemCount: hours.length,
+            itemBuilder: (context, index) {
+              return _buildHourRow(hours[index], startOfWeek);
+            },
           ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWeekHeader(DateTime startOfWeek) {
+    final weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    return Container(
+      height: 60,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        border: Border(bottom: BorderSide(color: Colors.grey.shade400, width: 2)),
+      ),
+      child: Row(
+        children: [
+          // Time column header
+          Container(
+            width: 60,
+            decoration: BoxDecoration(
+              border: Border(right: BorderSide(color: Colors.grey.shade400, width: 2)),
+            ),
+            child: Center(
+              child: Text(
+                'Time',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ),
+          ),
+          // Days of week
+          ...List.generate(7, (index) {
+            final date = startOfWeek.add(Duration(days: index));
+            final isToday = date.day == DateTime.now().day &&
+                date.month == DateTime.now().month &&
+                date.year == DateTime.now().year;
+            final isSelected = date.day == _selectedDate.day &&
+                date.month == _selectedDate.month &&
+                date.year == _selectedDate.year;
+
+            return Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedDate = date;
+                  });
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.blue.shade50 : Colors.transparent,
+                    border: Border(
+                      left: BorderSide(color: Colors.grey.shade300),
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        weekDays[date.weekday % 7],
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: isToday ? Colors.blue : Colors.grey.shade600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: isToday ? Colors.blue : Colors.transparent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            date.day.toString(),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: isToday ? Colors.white : Colors.black,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
         ],
       ),
     );
+  }
+
+  Widget _buildHourRow(int hour, DateTime startOfWeek) {
+    return SizedBox(
+      height: 60,
+      child: Row(
+        children: [
+          // Time label
+          Container(
+            width: 60,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              border: Border(
+                right: BorderSide(color: Colors.grey.shade400, width: 2),
+                bottom: BorderSide(color: Colors.grey.shade200),
+              ),
+            ),
+            child: Center(
+              child: Text(
+                _formatHour(hour),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ),
+          ),
+          // Day cells
+          ...List.generate(7, (dayIndex) {
+            final date = startOfWeek.add(Duration(days: dayIndex));
+            final events = _getEventsForDay(date);
+            final isSelected = date.day == _selectedDate.day &&
+                date.month == _selectedDate.month &&
+                date.year == _selectedDate.year;
+
+            // Find events for this hour
+            final hourEvents = events.where((event) {
+              final eventHour = int.parse(event['time'].split(':')[0]);
+              return eventHour == hour;
+            }).toList();
+
+            final isSelectedSlot = isSelected && _selectedHour == hour;
+
+            return Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _selectedDate = date;
+                    _selectedHour = hour;
+                  });
+                  _showCreateEventDialog(date, hour);
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isSelectedSlot
+                        ? Colors.blue.shade100
+                        : isSelected
+                            ? Colors.blue.shade50
+                            : Colors.white,
+                    border: Border(
+                      left: BorderSide(color: Colors.grey.shade300),
+                      bottom: BorderSide(color: Colors.grey.shade200),
+                      top: isSelectedSlot
+                          ? BorderSide(color: Colors.blue, width: 2)
+                          : BorderSide.none,
+                      right: isSelectedSlot
+                          ? BorderSide(color: Colors.blue, width: 2)
+                          : BorderSide.none,
+                    ),
+                  ),
+                  child: hourEvents.isEmpty
+                      ? const SizedBox.expand()
+                      : Padding(
+                          padding: const EdgeInsets.all(2),
+                          child: Column(
+                            children: hourEvents.map((event) {
+                              return Expanded(
+                                child: Container(
+                                  margin: const EdgeInsets.only(bottom: 1),
+                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: _getEventColor(event['type']),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        event['time'],
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          event['title'],
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  String _formatHour(int hour) {
+    if (hour == 0) return '12 AM';
+    if (hour < 12) return '$hour AM';
+    if (hour == 12) return '12 PM';
+    return '${hour - 12} PM';
   }
 
   Widget _buildAgendaView() {
@@ -491,31 +669,337 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  void _showAddEventDialog() {
+  void _showCreateEventDialog(DateTime date, int hour) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add Event'),
-        content: const Column(
+        title: Text(AppLocalizations.of(context)!.createEvent),
+        content: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.event_available, size: 48, color: Colors.green),
-            SizedBox(height: 16),
-            Text('Event creation feature coming soon!'),
-            SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.event_available, size: 32, color: Colors.blue),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${date.day}/${date.month}/${date.year}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        _formatHour(hour),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Event creation feature coming soon!',
+              style: TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 8),
             Text(
-              'You\'ll be able to add movies, concerts, restaurant visits, and more to your calendar.',
-              style: TextStyle(color: Colors.grey),
-              textAlign: TextAlign.center,
+              'You\'ll be able to add movies, concerts, restaurant visits, and more to your calendar at this time slot.',
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+              textAlign: TextAlign.left,
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: Text(AppLocalizations.of(context)!.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Center(child: Text('Event creation coming soon!')),
+                  backgroundColor: Colors.blue,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
+            child: Text(AppLocalizations.of(context)!.createEvent),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showAddEventDialog() {
+    final titleController = TextEditingController();
+    final descriptionController = TextEditingController();
+    final placeController = TextEditingController();
+    final videoLinkController = TextEditingController();
+    final participantsController = TextEditingController();
+
+    DateTime selectedDate = DateTime.now();
+    TimeOfDay selectedTime = TimeOfDay.now();
+    String selectedEventType = 'Dinner';
+    int selectedDurationMinutes = 60;
+
+    final eventTypes = [
+      'Dinner',
+      'Drinks',
+      'Party',
+      'Date',
+      'Playdate',
+      'Concert',
+      'Festival',
+      'Play',
+      'Movie',
+      'Comedy Show',
+      'Sports Game',
+      'Training',
+      'Meeting',
+      'Conference',
+      'Workshop',
+      'Birthday',
+      'Wedding',
+      'Other',
+    ];
+
+    final durations = [
+      {'label': '30 min', 'value': 30},
+      {'label': '1 hour', 'value': 60},
+      {'label': '1.5 hours', 'value': 90},
+      {'label': '2 hours', 'value': 120},
+      {'label': '3 hours', 'value': 180},
+      {'label': '4 hours', 'value': 240},
+      {'label': 'All day', 'value': 1440},
+    ];
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text(AppLocalizations.of(context)!.addEvent),
+          content: SingleChildScrollView(
+            child: SizedBox(
+              width: 500,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Event Title
+                  TextField(
+                    controller: titleController,
+                    decoration: const InputDecoration(
+                      labelText: 'Event Title *',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.title),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Event Type Dropdown
+                  DropdownButtonFormField<String>(
+                    initialValue: selectedEventType,
+                    decoration: const InputDecoration(
+                      labelText: 'Event Type',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.category),
+                    ),
+                    items: eventTypes.map((type) {
+                      return DropdownMenuItem(
+                        value: type,
+                        child: Text(type),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedEventType = value!;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Place/Location
+                  TextField(
+                    controller: placeController,
+                    decoration: const InputDecoration(
+                      labelText: 'Place/Location',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.location_on),
+                      hintText: 'Restaurant name, address, etc.',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Description
+                  TextField(
+                    controller: descriptionController,
+                    decoration: const InputDecoration(
+                      labelText: 'Description',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.description),
+                    ),
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Date Selector
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.calendar_today),
+                    title: Text(
+                      '${selectedDate.day}/${selectedDate.month}/${selectedDate.year}',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    subtitle: Text(AppLocalizations.of(context)!.eventDate),
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime(2024),
+                        lastDate: DateTime(2030),
+                      );
+                      if (picked != null) {
+                        setState(() {
+                          selectedDate = picked;
+                        });
+                      }
+                    },
+                  ),
+                  const Divider(),
+
+                  // Time Selector
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.access_time),
+                    title: Text(
+                      selectedTime.format(context),
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    subtitle: Text(AppLocalizations.of(context)!.startTime),
+                    onTap: () async {
+                      final picked = await showTimePicker(
+                        context: context,
+                        initialTime: selectedTime,
+                      );
+                      if (picked != null) {
+                        setState(() {
+                          selectedTime = picked;
+                        });
+                      }
+                    },
+                  ),
+                  const Divider(),
+
+                  // Duration Dropdown
+                  DropdownButtonFormField<int>(
+                    initialValue: selectedDurationMinutes,
+                    decoration: const InputDecoration(
+                      labelText: 'Duration',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.timer),
+                    ),
+                    items: durations.map((duration) {
+                      return DropdownMenuItem(
+                        value: duration['value'] as int,
+                        child: Text(duration['label'] as String),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedDurationMinutes = value!;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Participants
+                  TextField(
+                    controller: participantsController,
+                    decoration: const InputDecoration(
+                      labelText: 'Participants',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.people),
+                      hintText: 'Enter names separated by commas',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Video Call Link
+                  TextField(
+                    controller: videoLinkController,
+                    decoration: const InputDecoration(
+                      labelText: 'Video Call Link',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.video_call),
+                      hintText: 'Zoom, Meet, Teams link',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(AppLocalizations.of(context)!.cancel),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (titleController.text.isNotEmpty) {
+                  final eventDate = DateTime(
+                    selectedDate.year,
+                    selectedDate.month,
+                    selectedDate.day,
+                  );
+
+                  final newEvent = {
+                    'title': titleController.text,
+                    'type': selectedEventType,
+                    'description': descriptionController.text,
+                    'place': placeController.text,
+                    'time': selectedTime.format(context),
+                    'duration': selectedDurationMinutes,
+                    'participants': participantsController.text,
+                    'videoLink': videoLinkController.text,
+                    'category': 'event',
+                  };
+
+                  Navigator.pop(context);
+
+                  // Update state in the parent widget
+                  this.setState(() {
+                    if (_events[eventDate] != null) {
+                      _events[eventDate]!.add(newEvent);
+                    } else {
+                      _events[eventDate] = [newEvent];
+                    }
+                  });
+
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Event added successfully!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: Text(AppLocalizations.of(context)!.addEvent),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -526,5 +1010,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
       'July', 'August', 'September', 'October', 'November', 'December'
     ];
     return months[month - 1];
+  }
+
+  DateTime _getStartOfWeek(DateTime date) {
+    final daysFromSunday = date.weekday % 7;
+    return date.subtract(Duration(days: daysFromSunday));
   }
 }

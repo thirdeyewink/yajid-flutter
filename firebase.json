@@ -1,1 +1,48 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"yajid-connect","appId":"1:120731919247:android:771b0c5098df3ce16ba1fa","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"yajid-connect","configurations":{"android":"1:120731919247:android:771b0c5098df3ce16ba1fa","ios":"1:120731919247:ios:fdb4e78d8e39d29c6ba1fa"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "yajid-connect",
+          "appId": "1:120731919247:android:771b0c5098df3ce16ba1fa",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "yajid-connect",
+          "configurations": {
+            "android": "1:120731919247:android:771b0c5098df3ce16ba1fa",
+            "ios": "1:120731919247:ios:fdb4e78d8e39d29c6ba1fa"
+          }
+        }
+      }
+    }
+  },
+  "functions": {
+    "source": "functions"
+  },
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "functions": {
+      "port": 5001
+    },
+    "storage": {
+      "port": 9199
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    },
+    "singleProjectMode": true
+  }
+}

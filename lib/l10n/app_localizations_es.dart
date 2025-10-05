@@ -200,6 +200,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get add => 'Añadir';
 
   @override
+  String get discover => 'Encontrar';
+
+  @override
   String get calendar => 'Calendario';
 
   @override
@@ -297,4 +300,89 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get businesses => 'Negocios';
+
+  @override
+  String hiUser(String userName) {
+    return 'Hola $userName';
+  }
+
+  @override
+  String get youMightLike => 'Creemos que te puede gustar';
+
+  @override
+  String get seeAll => 'Ver Todo';
+
+  @override
+  String viewAllCategoryComing(String category) {
+    return 'Ver todo $category próximamente';
+  }
+
+  @override
+  String get createEvent => 'Crear Evento';
+
+  @override
+  String get addEvent => 'Añadir Evento';
+
+  @override
+  String get delete => 'Eliminar';
+
+  @override
+  String get deleteChats => 'Eliminar Chats';
+
+  @override
+  String get deleteChat => 'Eliminar Chat';
+
+  @override
+  String get eventDate => 'Fecha del Evento';
+
+  @override
+  String get startTime => 'Hora de Inicio';
+
+  @override
+  String get friendRequest => 'Solicitud de Amistad';
+
+  @override
+  String get decline => 'Rechazar';
+
+  @override
+  String get accept => 'Aceptar';
+
+  @override
+  String get newRecommendation => 'Nueva Recomendación';
+
+  @override
+  String get later => 'Más Tarde';
+
+  @override
+  String get viewDetails => 'Ver Detalles';
+
+  @override
+  String get newComment => 'Nuevo Comentario';
+
+  @override
+  String get close => 'Cerrar';
+
+  @override
+  String get viewComment => 'Ver Comentario';
+
+  @override
+  String get weeklyDigest => 'Resumen Semanal';
+
+  @override
+  String get viewDigest => 'Ver Resumen';
+
+  @override
+  String get trendingNearYou => 'Tendencias Cerca de Ti';
+
+  @override
+  String get learnMore => 'Saber Más';
+
+  @override
+  String get friendActivity => 'Actividad de Amigos';
+
+  @override
+  String get viewProfile => 'Ver Perfil';
+
+  @override
+  String get retry => 'Reintentar';
 }

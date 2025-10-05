@@ -92,8 +92,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _saveRecommendationPreferences() async {
-    // TODO: Save to Firebase user profile
-    // For now, save to SharedPreferences
+    // Save to SharedPreferences for now
+    // Future enhancement: Save to Firebase user profile for cross-device sync
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList('looking_for', _selectedCategories.toList());
   }

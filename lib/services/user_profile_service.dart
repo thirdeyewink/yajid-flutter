@@ -195,6 +195,78 @@ class UserProfileService {
         .map((doc) => doc.exists ? doc.data() : null);
   }
 
+  Future<bool> createUserProfile({
+    required String firstName,
+    required String lastName,
+    required String email,
+    required String phoneNumber,
+    required String gender,
+    String? birthday,
+  }) async {
+    if (currentUserId == null) return false;
+
+    try {
+      final user = _auth.currentUser!;
+
+      await _firestore
+          .collection('users')
+          .doc(currentUserId)
+          .set({
+        'displayName': '$firstName $lastName',
+        'firstName': firstName,
+        'lastName': lastName,
+        'email': email,
+        'phoneNumber': phoneNumber,
+        'gender': gender,
+        'birthday': birthday ?? '',
+        'profileImageUrl': user.photoURL,
+        'socialMedia': {
+          'instagram': '',
+          'x': '',
+          'linkedin': '',
+          'spotify': '',
+          'youtube': '',
+          'tiktok': '',
+          'whatsapp': '',
+        },
+        'selectedCategories': <String>[],
+        'skills': {
+          'Musical Instruments': <String>[],
+          'Sports': <String>[],
+          'Professional': <String>[],
+          'Software': <String>[],
+          'Tools': <String>[],
+          'Game Role': <String>[],
+        },
+        'bookmarks': <Map<String, dynamic>>[],
+        'ratedItems': <Map<String, dynamic>>[],
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      return true;
+    } catch (e) {
+      logger.error('Error creating user profile', e);
+      return false;
+    }
+  }
+
+  Future<bool> updateProfile(Map<String, dynamic> profileData) async {
+    if (currentUserId == null) return false;
+
+    try {
+      profileData['updatedAt'] = FieldValue.serverTimestamp();
+
+      await _firestore
+          .collection('users')
+          .doc(currentUserId)
+          .set(profileData, SetOptions(merge: true));
+      return true;
+    } catch (e) {
+      logger.error('Error updating profile', e);
+      return false;
+    }
+  }
+
   Future<bool> initializeUserProfile() async {
     if (currentUserId == null) return false;
 

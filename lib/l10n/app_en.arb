@@ -63,6 +63,7 @@
   "forYou": "For You",
   "messages": "Messages",
   "add": "Add",
+  "discover": "Find",
   "calendar": "Calendar",
   "welcomeToYajid": "Welcome to Yajid",
   "profileFeatureComingSoon": "Profile feature coming soon",
@@ -94,5 +95,47 @@
   "recipes": "Recipes",
   "events": "Events",
   "activities": "Activities",
-  "businesses": "Businesses"
+  "businesses": "Businesses",
+  "hiUser": "Hi {userName}",
+  "@hiUser": {
+    "description": "Greeting with user name",
+    "placeholders": {
+      "userName": {
+        "type": "String"
+      }
+    }
+  },
+  "youMightLike": "We think you might like",
+  "seeAll": "See All",
+  "viewAllCategoryComing": "View all {category} coming soon",
+  "@viewAllCategoryComing": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "createEvent": "Create Event",
+  "addEvent": "Add Event",
+  "delete": "Delete",
+  "deleteChats": "Delete Chats",
+  "deleteChat": "Delete Chat",
+  "eventDate": "Event Date",
+  "startTime": "Start Time",
+  "friendRequest": "Friend Request",
+  "decline": "Decline",
+  "accept": "Accept",
+  "newRecommendation": "New Recommendation",
+  "later": "Later",
+  "viewDetails": "View Details",
+  "newComment": "New Comment",
+  "close": "Close",
+  "viewComment": "View Comment",
+  "weeklyDigest": "Weekly Digest",
+  "viewDigest": "View Digest",
+  "trendingNearYou": "Trending Near You",
+  "learnMore": "Learn More",
+  "friendActivity": "Friend Activity",
+  "viewProfile": "View Profile",
+  "retry": "Retry"
 }

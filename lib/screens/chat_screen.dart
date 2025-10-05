@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:yajid/l10n/app_localizations.dart';
 import 'package:yajid/models/message_model.dart';
 import 'package:yajid/services/messaging_service.dart';
 import 'package:yajid/home_screen.dart';
@@ -135,7 +136,24 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Row(
+        leading: Padding(
+          padding: const EdgeInsets.fromLTRB(16.0, 4.0, 4.0, 4.0),
+          child: ColorFiltered(
+            colorFilter: const ColorFilter.matrix([
+              -1, 0, 0, 0, 255,  // Invert red
+              0, -1, 0, 0, 255,  // Invert green
+              0, 0, -1, 0, 255,  // Invert blue
+              0, 0, 0, 1, 0,     // Keep alpha
+            ]),
+            child: Image.asset(
+              'assets/images/logo.jpg',
+              height: 64,
+              width: 64,
+              fit: BoxFit.contain,
+            ),
+          ),
+        ),
+        title: Center(child: Row(
           children: [
             CircleAvatar(
               backgroundColor: Colors.blue,
@@ -168,9 +186,12 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
           ],
+        )),
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        iconTheme: const IconThemeData(
+          color: Colors.white,
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
         elevation: 1,
         actions: [
           PopupMenuButton<String>(
@@ -285,24 +306,24 @@ class _ChatScreenState extends State<ChatScreen> {
         onTap: _onTabTapped,
         items: [
           BottomNavigationBarItem(
-            icon: const Icon(Icons.auto_awesome),
-            label: '',
+            icon: const Icon(Icons.home),
+            label: AppLocalizations.of(context)!.home,
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.search),
-            label: '',
+            label: AppLocalizations.of(context)!.discover,
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.add_circle_outline),
-            label: '',
+            label: AppLocalizations.of(context)!.add,
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.calendar_today_outlined),
-            label: '',
+            label: AppLocalizations.of(context)!.calendar,
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.person),
-            label: '',
+            label: AppLocalizations.of(context)!.profile,
           ),
         ],
       ),
@@ -437,18 +458,18 @@ class _ChatScreenState extends State<ChatScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Chat'),
+        title: Text(AppLocalizations.of(context)!.deleteChat),
         content: Text('Are you sure you want to delete this conversation with ${widget.otherUserName}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
               final success = await _messagingService.deleteChat(widget.chatId);
-              if (success && mounted) {
+              if (success && context.mounted) {
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -459,7 +480,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 );
               }
             },
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child: Text(AppLocalizations.of(context)!.delete, style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),

@@ -201,6 +201,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get add => 'Adicionar';
 
   @override
+  String get discover => 'Encontrar';
+
+  @override
   String get calendar => 'Calendário';
 
   @override
@@ -298,4 +301,89 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get businesses => 'Negócios';
+
+  @override
+  String hiUser(String userName) {
+    return 'Olá $userName';
+  }
+
+  @override
+  String get youMightLike => 'Achamos que você pode gostar';
+
+  @override
+  String get seeAll => 'Ver Tudo';
+
+  @override
+  String viewAllCategoryComing(String category) {
+    return 'Ver todo $category em breve';
+  }
+
+  @override
+  String get createEvent => 'Criar Evento';
+
+  @override
+  String get addEvent => 'Adicionar Evento';
+
+  @override
+  String get delete => 'Excluir';
+
+  @override
+  String get deleteChats => 'Excluir Conversas';
+
+  @override
+  String get deleteChat => 'Excluir Conversa';
+
+  @override
+  String get eventDate => 'Data do Evento';
+
+  @override
+  String get startTime => 'Horário de Início';
+
+  @override
+  String get friendRequest => 'Solicitação de Amizade';
+
+  @override
+  String get decline => 'Recusar';
+
+  @override
+  String get accept => 'Aceitar';
+
+  @override
+  String get newRecommendation => 'Nova Recomendação';
+
+  @override
+  String get later => 'Mais Tarde';
+
+  @override
+  String get viewDetails => 'Ver Detalhes';
+
+  @override
+  String get newComment => 'Novo Comentário';
+
+  @override
+  String get close => 'Fechar';
+
+  @override
+  String get viewComment => 'Ver Comentário';
+
+  @override
+  String get weeklyDigest => 'Resumo Semanal';
+
+  @override
+  String get viewDigest => 'Ver Resumo';
+
+  @override
+  String get trendingNearYou => 'Tendências Perto de Você';
+
+  @override
+  String get learnMore => 'Saiba Mais';
+
+  @override
+  String get friendActivity => 'Atividade dos Amigos';
+
+  @override
+  String get viewProfile => 'Ver Perfil';
+
+  @override
+  String get retry => 'Tentar Novamente';
 }
