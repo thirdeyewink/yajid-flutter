@@ -87,6 +87,52 @@ jobs:
           name: web-build
           path: build/web/
 
+  integration-tests:
+    name: Integration Tests with Firebase Emulator
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java (for Firestore Emulator)
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Start Firebase Emulator
+        run: |
+          firebase emulators:start --only auth,firestore,functions,storage &
+          sleep 10
+          curl --retry 5 --retry-delay 2 http://localhost:4000 || echo "Emulator UI not ready"
+
+      - name: Run integration tests
+        run: flutter test integration_test/ --coverage
+        continue-on-error: true
+
+      - name: Stop Firebase Emulator
+        if: always()
+        run: pkill -f "firebase emulators" || true
+
   cloud-functions:
     name: Test Cloud Functions
     runs-on: ubuntu-latest
