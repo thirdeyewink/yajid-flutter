@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:yajid/models/recommendation_model.dart';
 import 'package:yajid/services/recommendation_service.dart';
+import 'package:yajid/services/user_profile_service.dart';
 
 /// Admin screen for seeding initial recommendation data
 /// Access this screen from Settings > Advanced > Seed Data
+/// ⚠️ SECURITY: Only users with admin role can access this functionality
 class AdminSeedScreen extends StatefulWidget {
   const AdminSeedScreen({super.key});
 
@@ -13,10 +15,33 @@ class AdminSeedScreen extends StatefulWidget {
 
 class _AdminSeedScreenState extends State<AdminSeedScreen> {
   final RecommendationService _service = RecommendationService();
+  final UserProfileService _profileService = UserProfileService();
   bool _isSeeding = false;
+  bool _isCheckingAuth = true;
+  bool _isAdmin = false;
   String _status = '';
   int _successCount = 0;
   int _failCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAdminStatus();
+  }
+
+  Future<void> _checkAdminStatus() async {
+    final isAdmin = await _profileService.isAdmin();
+    setState(() {
+      _isAdmin = isAdmin;
+      _isCheckingAuth = false;
+    });
+
+    if (!isAdmin) {
+      setState(() {
+        _status = 'Access Denied: Admin privileges required';
+      });
+    }
+  }
 
   Future<void> _seedData() async {
     setState(() {
@@ -412,83 +437,145 @@ class _AdminSeedScreenState extends State<AdminSeedScreen> {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.cloud_upload,
-              size: 80,
-              color: Colors.blue,
+      body: _isCheckingAuth
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : !_isAdmin
+              ? _buildAccessDeniedView()
+              : _buildSeedingView(),
+    );
+  }
+
+  Widget _buildAccessDeniedView() {
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.block,
+            size: 80,
+            color: Colors.red,
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Access Denied',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.red,
             ),
-            const SizedBox(height: 24),
-            const Text(
-              'Seed Initial Data',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'This feature requires administrator privileges.',
+            style: TextStyle(fontSize: 16),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'If you believe you should have access, please contact your system administrator.',
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 32),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.grey,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'This will add 24 sample recommendations to your Firestore database across all 12 categories.',
-              style: TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
+            child: const Text(
+              'Go Back',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 32),
-            if (_status.isNotEmpty)
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      Text(
-                        _status,
-                        style: const TextStyle(fontSize: 16),
-                        textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSeedingView() {
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.cloud_upload,
+            size: 80,
+            color: Colors.blue,
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Seed Initial Data',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'This will add 24 sample recommendations to your Firestore database across all 12 categories.',
+            style: TextStyle(fontSize: 16),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 32),
+          if (_status.isNotEmpty)
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    Text(
+                      _status,
+                      style: const TextStyle(fontSize: 16),
+                      textAlign: TextAlign.center,
+                    ),
+                    if (_successCount > 0 || _failCount > 0) ...[
+                      const SizedBox(height: 12),
+                      LinearProgressIndicator(
+                        value: (_successCount + _failCount) / 24,
                       ),
-                      if (_successCount > 0 || _failCount > 0) ...[
-                        const SizedBox(height: 12),
-                        LinearProgressIndicator(
-                          value: (_successCount + _failCount) / 24,
-                        ),
-                      ],
                     ],
-                  ),
+                  ],
                 ),
               ),
-            const SizedBox(height: 32),
-            ElevatedButton(
-              onPressed: _isSeeding ? null : _seedData,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: _isSeeding
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Text(
-                      'Start Seeding',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          const SizedBox(height: 32),
+          ElevatedButton(
+            onPressed: _isSeeding ? null : _seedData,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+            child: _isSeeding
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
-            ),
-            const SizedBox(height: 16),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-          ],
-        ),
+                  )
+                : const Text(
+                    'Start Seeding',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+          ),
+          const SizedBox(height: 16),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+        ],
       ),
     );
   }

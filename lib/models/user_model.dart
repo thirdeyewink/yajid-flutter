@@ -5,6 +5,7 @@ class UserModel {
   final String? photoURL;
   final bool isOnline;
   final DateTime lastSeen;
+  final String role; // 'user' or 'admin'
 
   UserModel({
     required this.uid,
@@ -13,6 +14,7 @@ class UserModel {
     this.photoURL,
     this.isOnline = false,
     required this.lastSeen,
+    this.role = 'user',
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
@@ -23,6 +25,7 @@ class UserModel {
       photoURL: map['photoURL'],
       isOnline: map['isOnline'] ?? false,
       lastSeen: DateTime.fromMillisecondsSinceEpoch(map['lastSeen'] ?? 0),
+      role: map['role'] ?? 'user',
     );
   }
 
@@ -34,6 +37,7 @@ class UserModel {
       'photoURL': photoURL,
       'isOnline': isOnline,
       'lastSeen': lastSeen.millisecondsSinceEpoch,
+      'role': role,
     };
   }
 
@@ -44,6 +48,7 @@ class UserModel {
     String? photoURL,
     bool? isOnline,
     DateTime? lastSeen,
+    String? role,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -52,6 +57,7 @@ class UserModel {
       photoURL: photoURL ?? this.photoURL,
       isOnline: isOnline ?? this.isOnline,
       lastSeen: lastSeen ?? this.lastSeen,
+      role: role ?? this.role,
     );
   }
 }

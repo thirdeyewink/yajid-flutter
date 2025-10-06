@@ -61,7 +61,9 @@
       "WebFetch(domain:pub.dev)",
       "WebFetch(domain:6tail.cn)",
       "Bash(firebase emulators:exec:*)",
-      "Bash(java:*)"
+      "Bash(java:*)",
+      "Bash(firebase setup:emulators:firestore:*)",
+      "Bash(firebase setup:emulators:auth:*)"
     ],
     "deny": [],
     "ask": []

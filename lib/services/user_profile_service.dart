@@ -12,6 +12,26 @@ class UserProfileService {
 
   String? get currentUserId => _auth.currentUser?.uid;
 
+  /// Check if current user has admin role
+  Future<bool> isAdmin() async {
+    if (currentUserId == null) return false;
+
+    try {
+      final doc = await _firestore
+          .collection('users')
+          .doc(currentUserId)
+          .get();
+
+      if (doc.exists) {
+        final role = doc.data()?['role'] as String?;
+        return role == 'admin';
+      }
+    } catch (e) {
+      logger.error('Error checking admin status', e);
+    }
+    return false;
+  }
+
   Future<Map<String, dynamic>?> getUserProfile() async {
     if (currentUserId == null) return null;
 
@@ -228,6 +248,7 @@ class UserProfileService {
         'gender': gender,
         'birthday': birthday ?? '',
         'profileImageUrl': user.photoURL,
+        'role': 'user', // Default role
         'socialMedia': {
           'instagram': '',
           'x': '',
@@ -296,6 +317,7 @@ class UserProfileService {
           'phoneNumber': user.phoneNumber ?? '',
           'birthday': '',
           'profileImageUrl': user.photoURL,
+          'role': 'user', // Default role
           'socialMedia': {
             'instagram': '',
             'x': '',
