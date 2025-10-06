@@ -382,4 +382,82 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get retry => 'إعادة المحاولة';
+
+  @override
+  String get userName => 'اسم المستخدم';
+
+  @override
+  String get writeNewMessage => 'كتابة رسالة جديدة';
+
+  @override
+  String get startConversation => 'بدء محادثة مع شخص ما';
+
+  @override
+  String get startNewThread => 'بدء موضوع جديد';
+
+  @override
+  String get startTopicDiscussion => 'بدء مناقشة حول موضوع';
+
+  @override
+  String get startGroupChat => 'بدء محادثة جماعية';
+
+  @override
+  String get chatWithMultiplePeople => 'الدردشة مع عدة أشخاص';
+
+  @override
+  String get addYourBusiness => 'أضف عملك';
+
+  @override
+  String get newTrip => 'رحلة جديدة';
+
+  @override
+  String get createGroup => 'إنشاء مجموعة';
+
+  @override
+  String get createThread => 'إنشاء موضوع';
+
+  @override
+  String get addRecipe => 'إضافة وصفة';
+
+  @override
+  String get addNewContent => 'إضافة محتوى جديد';
+
+  @override
+  String get tapPlusToGetStarted => 'انقر فوق زر + للبدء';
+
+  @override
+  String get business => 'عمل';
+
+  @override
+  String get event => 'حدث';
+
+  @override
+  String get trip => 'رحلة';
+
+  @override
+  String get group => 'مجموعة';
+
+  @override
+  String get thread => 'موضوع';
+
+  @override
+  String get recipe => 'وصفة';
+
+  @override
+  String get people => 'أشخاص';
+
+  @override
+  String get sportsTeams => 'فرق رياضية';
+
+  @override
+  String get springEquinox => 'الاعتدال الربيعي';
+
+  @override
+  String get summerSolstice => 'الانقلاب الصيفي';
+
+  @override
+  String get autumnEquinox => 'الاعتدال الخريفي';
+
+  @override
+  String get winterSolstice => 'الانقلاب الشتوي';
 }

@@ -6,7 +6,6 @@ import 'package:yajid/locale_provider.dart';
 import 'package:yajid/theme_provider.dart';
 import 'package:yajid/onboarding_provider.dart';
 import 'package:yajid/auth_screen.dart';
-import 'package:yajid/theme/app_theme.dart';
 import 'package:yajid/screens/admin_seed_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -74,7 +73,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.black,
-        leading: AppTheme.buildLogo(),
         title: Text(
           AppLocalizations.of(context)!.settings,
           style: const TextStyle(color: Colors.white),

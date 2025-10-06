@@ -8,7 +8,6 @@ import 'package:yajid/widgets/gamification/points_display_widget.dart';
 import 'package:yajid/widgets/gamification/points_history_widget.dart';
 import 'package:yajid/models/gamification/badge_model.dart';
 import 'package:yajid/models/gamification/level_model.dart';
-import 'package:yajid/theme/app_theme.dart';
 import 'package:yajid/screens/badge_showcase_screen.dart';
 import 'package:yajid/screens/leaderboard_screen.dart';
 
@@ -52,17 +51,26 @@ class _GamificationScreenState extends State<GamificationScreen> with SingleTick
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.black,
-        leading: AppTheme.buildLogo(),
         title: const Text(
           'Your Progress',
           style: TextStyle(color: Colors.white),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.close, color: Colors.white),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.grey[600],
           indicatorColor: Colors.white,
           indicatorWeight: 3,
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
           tabs: const [
             Tab(icon: Icon(Icons.stars, color: Colors.white), text: 'Points'),
             Tab(icon: Icon(Icons.military_tech, color: Colors.white), text: 'Badges'),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:yajid/theme/app_theme.dart';
 import 'package:yajid/l10n/app_localizations.dart';
+import 'package:yajid/services/astronomical_service.dart';
+import 'package:geolocator/geolocator.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -14,6 +16,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
   DateTime _focusedDate = DateTime.now();
   String _selectedView = 'Agenda';
   int? _selectedHour;
+  Position? _userLocation;
+  List<Holiday> _holidays = [];
+  SolsticesEquinoxes? _solsticesEquinoxes;
 
   final List<String> _viewTypes = ['Month', 'Week', 'Agenda'];
 
@@ -64,8 +69,147 @@ class _CalendarScreenState extends State<CalendarScreen> {
     ],
   };
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_holidays.isEmpty) {
+      _loadAstronomicalData();
+    }
+  }
+
+  Future<void> _loadAstronomicalData() async {
+    final location = await AstronomicalService.getCurrentLocation();
+    if (!mounted) return;
+    final locale = Localizations.localeOf(context).languageCode;
+
+    setState(() {
+      _userLocation = location;
+      _holidays = AstronomicalService.getHolidays(_focusedDate.year, locale);
+      _solsticesEquinoxes = AstronomicalService.getSolsticesEquinoxes(_focusedDate.year);
+
+      // Add solstices and equinoxes as calendar events
+      if (_solsticesEquinoxes != null) {
+        final se = _solsticesEquinoxes!;
+
+        // Spring Equinox
+        final springDate = DateTime(se.springEquinox.year, se.springEquinox.month, se.springEquinox.day);
+        if (_events[springDate] == null) {
+          _events[springDate] = [];
+        }
+        _events[springDate]!.add({
+          'title': '${AppLocalizations.of(context)!.springEquinox} 🌸',
+          'type': 'astronomical',
+          'time': '00:00',
+          'category': 'Astronomy',
+          'description': 'First day of spring. Day and night are approximately equal in length.',
+        });
+
+        // Summer Solstice
+        final summerDate = DateTime(se.summerSolstice.year, se.summerSolstice.month, se.summerSolstice.day);
+        if (_events[summerDate] == null) {
+          _events[summerDate] = [];
+        }
+        _events[summerDate]!.add({
+          'title': '${AppLocalizations.of(context)!.summerSolstice} ☀️',
+          'type': 'astronomical',
+          'time': '00:00',
+          'category': 'Astronomy',
+          'description': 'Longest day of the year in the Northern Hemisphere.',
+        });
+
+        // Autumn Equinox
+        final autumnDate = DateTime(se.autumnEquinox.year, se.autumnEquinox.month, se.autumnEquinox.day);
+        if (_events[autumnDate] == null) {
+          _events[autumnDate] = [];
+        }
+        _events[autumnDate]!.add({
+          'title': '${AppLocalizations.of(context)!.autumnEquinox} 🍂',
+          'type': 'astronomical',
+          'time': '00:00',
+          'category': 'Astronomy',
+          'description': 'First day of autumn. Day and night are approximately equal in length.',
+        });
+
+        // Winter Solstice
+        final winterDate = DateTime(se.winterSolstice.year, se.winterSolstice.month, se.winterSolstice.day);
+        if (_events[winterDate] == null) {
+          _events[winterDate] = [];
+        }
+        _events[winterDate]!.add({
+          'title': '${AppLocalizations.of(context)!.winterSolstice} ❄️',
+          'type': 'astronomical',
+          'time': '00:00',
+          'category': 'Astronomy',
+          'description': 'Shortest day of the year in the Northern Hemisphere.',
+        });
+      }
+    });
+  }
+
   List<Map<String, dynamic>> _getEventsForDay(DateTime day) {
     return _events[DateTime(day.year, day.month, day.day)] ?? [];
+  }
+
+  bool _isHoliday(DateTime date) {
+    return _holidays.any((h) =>
+      h.date.year == date.year &&
+      h.date.month == date.month &&
+      h.date.day == date.day
+    );
+  }
+
+  Holiday? _getHoliday(DateTime date) {
+    try {
+      return _holidays.firstWhere((h) =>
+        h.date.year == date.year &&
+        h.date.month == date.month &&
+        h.date.day == date.day
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  bool _isSolsticeOrEquinox(DateTime date) {
+    if (_solsticesEquinoxes == null) return false;
+
+    final se = _solsticesEquinoxes!;
+    return (se.springEquinox.year == date.year &&
+            se.springEquinox.month == date.month &&
+            se.springEquinox.day == date.day) ||
+           (se.summerSolstice.year == date.year &&
+            se.summerSolstice.month == date.month &&
+            se.summerSolstice.day == date.day) ||
+           (se.autumnEquinox.year == date.year &&
+            se.autumnEquinox.month == date.month &&
+            se.autumnEquinox.day == date.day) ||
+           (se.winterSolstice.year == date.year &&
+            se.winterSolstice.month == date.month &&
+            se.winterSolstice.day == date.day);
+  }
+
+  String _getSolsticeOrEquinoxName(DateTime date, BuildContext context) {
+    if (_solsticesEquinoxes == null) return '';
+
+    final se = _solsticesEquinoxes!;
+    if (se.springEquinox.year == date.year &&
+        se.springEquinox.month == date.month &&
+        se.springEquinox.day == date.day) {
+      return '${AppLocalizations.of(context)!.springEquinox} 🌸';
+    } else if (se.summerSolstice.year == date.year &&
+               se.summerSolstice.month == date.month &&
+               se.summerSolstice.day == date.day) {
+      return '${AppLocalizations.of(context)!.summerSolstice} ☀️';
+    } else if (se.autumnEquinox.year == date.year &&
+               se.autumnEquinox.month == date.month &&
+               se.autumnEquinox.day == date.day) {
+      return '${AppLocalizations.of(context)!.autumnEquinox} 🍂';
+    } else if (se.winterSolstice.year == date.year &&
+               se.winterSolstice.month == date.month &&
+               se.winterSolstice.day == date.day) {
+      return '${AppLocalizations.of(context)!.winterSolstice} ❄️';
+    }
+    return '';
   }
 
   Color _getEventColor(String type) {
@@ -78,6 +222,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
         return Colors.orange;
       case 'gaming':
         return Colors.blue;
+      case 'astronomical':
+        return Colors.deepOrange;
       default:
         return Colors.grey;
     }
@@ -93,6 +239,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
         return Icons.restaurant;
       case 'gaming':
         return Icons.games;
+      case 'astronomical':
+        return Icons.wb_sunny;
       default:
         return Icons.event;
     }
@@ -183,6 +331,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           IconButton(
             icon: const Icon(Icons.chevron_left),
             onPressed: () {
+              final previousYear = _focusedDate.year;
               setState(() {
                 if (_selectedView == 'Week') {
                   // Go back one week
@@ -190,6 +339,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 } else {
                   // Go back one month
                   _focusedDate = DateTime(_focusedDate.year, _focusedDate.month - 1);
+                }
+                // Reload astronomical data if year changed
+                if (_focusedDate.year != previousYear) {
+                  _loadAstronomicalData();
                 }
               });
             },
@@ -206,6 +359,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           IconButton(
             icon: const Icon(Icons.chevron_right),
             onPressed: () {
+              final previousYear = _focusedDate.year;
               setState(() {
                 if (_selectedView == 'Week') {
                   // Go forward one week
@@ -213,6 +367,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 } else {
                   // Go forward one month
                   _focusedDate = DateTime(_focusedDate.year, _focusedDate.month + 1);
+                }
+                // Reload astronomical data if year changed
+                if (_focusedDate.year != previousYear) {
+                  _loadAstronomicalData();
                 }
               });
             },
@@ -255,7 +413,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
     return Container(
-      height: 60,
+      height: 72,
       decoration: BoxDecoration(
         color: Colors.grey.shade50,
         border: Border(bottom: BorderSide(color: Colors.grey.shade400, width: 2)),
@@ -303,37 +461,55 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       left: BorderSide(color: Colors.grey.shade300),
                     ),
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        weekDays[date.weekday % 7],
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: isToday ? Colors.blue : Colors.grey.shade600,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          weekDays[date.weekday % 7],
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: isToday ? Colors.blue : Colors.grey.shade600,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: isToday ? Colors.blue : Colors.transparent,
-                          shape: BoxShape.circle,
+                        const SizedBox(height: 1),
+                        // Moon phase emoji (only new moon and full moon)
+                        Builder(
+                          builder: (context) {
+                            final moonPhase = AstronomicalService.getMoonPhase(date);
+                            final showMoon = moonPhase.phase == 'New Moon' || moonPhase.phase == 'Full Moon';
+                            return showMoon
+                                ? Text(
+                                    moonPhase.emoji,
+                                    style: const TextStyle(fontSize: 9),
+                                  )
+                                : const SizedBox(height: 9);
+                          },
                         ),
-                        child: Center(
-                          child: Text(
-                            date.day.toString(),
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: isToday ? Colors.white : Colors.black,
+                        const SizedBox(height: 1),
+                        Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: isToday ? Colors.blue : Colors.transparent,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: Text(
+                              date.day.toString(),
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: isToday ? Colors.white : Colors.black,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -386,6 +562,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
             final isSelectedSlot = isSelected && _selectedHour == hour;
 
+            // Check for sunrise/sunset times
+            SunTimes? sunTimes;
+            if (_userLocation != null) {
+              sunTimes = AstronomicalService.calculateSunTimes(
+                date,
+                _userLocation!.latitude,
+                _userLocation!.longitude,
+              );
+            }
+
+            final bool isSunriseHour = sunTimes?.sunrise?.hour == hour;
+            final bool isSunsetHour = sunTimes?.sunset?.hour == hour;
+
             return Expanded(
               child: GestureDetector(
                 onTap: () {
@@ -413,9 +602,40 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           : BorderSide.none,
                     ),
                   ),
-                  child: hourEvents.isEmpty
-                      ? const SizedBox.expand()
-                      : Padding(
+                  child: Stack(
+                    children: [
+                      // Sunrise/Sunset indicators
+                      if (isSunriseHour && sunTimes?.sunrise != null)
+                        Positioned(
+                          top: 2,
+                          right: 2,
+                          child: Text(
+                            '🌅 ${sunTimes!.sunrise!.hour}:${sunTimes.sunrise!.minute.toString().padLeft(2, '0')}',
+                            style: TextStyle(
+                              fontSize: 8,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange.shade700,
+                            ),
+                          ),
+                        ),
+                      if (isSunsetHour && sunTimes?.sunset != null)
+                        Positioned(
+                          top: 2,
+                          right: 2,
+                          child: Text(
+                            '🌇 ${sunTimes!.sunset!.hour}:${sunTimes.sunset!.minute.toString().padLeft(2, '0')}',
+                            style: TextStyle(
+                              fontSize: 8,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange.shade700,
+                            ),
+                          ),
+                        ),
+                      // Events
+                      if (hourEvents.isEmpty)
+                        const SizedBox.expand()
+                      else
+                        Padding(
                           padding: const EdgeInsets.all(2),
                           child: Column(
                             children: hourEvents.map((event) {
@@ -458,6 +678,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             }).toList(),
                           ),
                         ),
+                    ],
+                  ),
                 ),
               ),
             );
@@ -574,13 +796,29 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
-                if (events.isNotEmpty)
+                const SizedBox(height: 2),
+                // Moon phase emoji (only new moon and full moon)
+                Builder(
+                  builder: (context) {
+                    final moonPhase = AstronomicalService.getMoonPhase(date);
+                    final showMoon = moonPhase.phase == 'New Moon' || moonPhase.phase == 'Full Moon';
+                    return showMoon
+                        ? Text(
+                            moonPhase.emoji,
+                            style: const TextStyle(fontSize: 12),
+                          )
+                        : const SizedBox(height: 12);
+                  },
+                ),
+                if (events.isNotEmpty || _isHoliday(date) || _isSolsticeOrEquinox(date))
                   Container(
                     margin: const EdgeInsets.only(top: 2),
                     width: 6,
                     height: 6,
                     decoration: BoxDecoration(
-                      color: isSelected ? Colors.white : Colors.blue,
+                      color: _isHoliday(date) || _isSolsticeOrEquinox(date)
+                          ? (isSelected ? Colors.white : Colors.orange)
+                          : (isSelected ? Colors.white : Colors.blue),
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -594,8 +832,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Widget _buildSelectedDayEvents() {
     final events = _getEventsForDay(_selectedDate);
+    final holiday = _getHoliday(_selectedDate);
+    final solsticeEquinox = _getSolsticeOrEquinoxName(_selectedDate, context);
+    final moonPhase = AstronomicalService.getMoonPhase(_selectedDate);
+
+    SunTimes? sunTimes;
+    if (_userLocation != null) {
+      sunTimes = AstronomicalService.calculateSunTimes(
+        _selectedDate,
+        _userLocation!.latitude,
+        _userLocation!.longitude,
+      );
+    }
+
     return Container(
-      height: 200,
+      height: 250,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.grey.shade50,
@@ -604,21 +855,85 @@ class _CalendarScreenState extends State<CalendarScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Events for ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            children: [
+              Text(
+                'Events for ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                moonPhase.emoji,
+                style: const TextStyle(fontSize: 18),
+              ),
+            ],
           ),
+          const SizedBox(height: 8),
+          // Astronomical info
+          if (holiday != null || solsticeEquinox.isNotEmpty || sunTimes != null)
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (holiday != null)
+                    Text(
+                      '🎉 ${holiday.name}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange.shade700,
+                      ),
+                    ),
+                  if (solsticeEquinox.isNotEmpty)
+                    Text(
+                      solsticeEquinox,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.orange.shade700,
+                      ),
+                    ),
+                  if (sunTimes?.sunrise != null && sunTimes?.sunset != null)
+                    Text(
+                      '🌅 ${sunTimes!.sunrise!.hour}:${sunTimes.sunrise!.minute.toString().padLeft(2, '0')} | 🌇 ${sunTimes.sunset!.hour}:${sunTimes.sunset!.minute.toString().padLeft(2, '0')}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.orange.shade700,
+                      ),
+                    ),
+                  Text(
+                    'Moon: ${moonPhase.phase} (${(moonPhase.illumination * 100).toInt()}%)',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.orange.shade700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           const SizedBox(height: 12),
           Expanded(
-            child: ListView.builder(
-              itemCount: events.length,
-              itemBuilder: (context, index) {
-                return _buildEventCard(events[index]);
-              },
-            ),
+            child: events.isEmpty
+                ? Center(
+                    child: Text(
+                      'No events scheduled',
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: events.length,
+                    itemBuilder: (context, index) {
+                      return _buildEventCard(events[index]);
+                    },
+                  ),
           ),
         ],
       ),

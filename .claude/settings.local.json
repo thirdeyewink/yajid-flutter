@@ -53,7 +53,15 @@
       "Bash(else echo \"No coverage file found\")",
       "Bash(fi)",
       "Bash(then lcov --summary coverage/lcov.info)",
-      "Bash(git mv:*)"
+      "Bash(git mv:*)",
+      "Bash(firebase emulators:start:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "mcp__context7__resolve-library-id",
+      "WebFetch(domain:pub.dev)",
+      "WebFetch(domain:6tail.cn)",
+      "Bash(firebase emulators:exec:*)",
+      "Bash(java:*)"
     ],
     "deny": [],
     "ask": []

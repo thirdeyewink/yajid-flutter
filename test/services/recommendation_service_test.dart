@@ -7,11 +7,16 @@ import 'package:yajid/services/recommendation_service.dart';
 
 // Mocks
 class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
+// ignore: subtype_of_sealed_class
 class MockCollectionReference extends Mock implements CollectionReference<Map<String, dynamic>> {}
+// ignore: subtype_of_sealed_class
 class MockQuery extends Mock implements Query<Map<String, dynamic>> {}
 class MockQuerySnapshot extends Mock implements QuerySnapshot<Map<String, dynamic>> {}
+// ignore: subtype_of_sealed_class
 class MockQueryDocumentSnapshot extends Mock implements QueryDocumentSnapshot<Map<String, dynamic>> {}
+// ignore: subtype_of_sealed_class
 class MockDocumentReference extends Mock implements DocumentReference<Map<String, dynamic>> {}
+// ignore: subtype_of_sealed_class
 class MockDocumentSnapshot extends Mock implements DocumentSnapshot<Map<String, dynamic>> {}
 class MockAggregateQuery extends Mock implements AggregateQuery {}
 class MockAggregateQuerySnapshot extends Mock implements AggregateQuerySnapshot {}

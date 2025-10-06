@@ -383,4 +383,82 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get retry => 'Retry';
+
+  @override
+  String get userName => 'User Name';
+
+  @override
+  String get writeNewMessage => 'Write a New Message';
+
+  @override
+  String get startConversation => 'Start a conversation with someone';
+
+  @override
+  String get startNewThread => 'Start a New Thread';
+
+  @override
+  String get startTopicDiscussion => 'Start a topic-based discussion';
+
+  @override
+  String get startGroupChat => 'Start a Group Chat';
+
+  @override
+  String get chatWithMultiplePeople => 'Chat with multiple people';
+
+  @override
+  String get addYourBusiness => 'Add Your Business';
+
+  @override
+  String get newTrip => 'New Trip';
+
+  @override
+  String get createGroup => 'Create Group';
+
+  @override
+  String get createThread => 'Create Thread';
+
+  @override
+  String get addRecipe => 'Add Recipe';
+
+  @override
+  String get addNewContent => 'Add New Content';
+
+  @override
+  String get tapPlusToGetStarted => 'Tap the + button above to get started';
+
+  @override
+  String get business => 'Business';
+
+  @override
+  String get event => 'Event';
+
+  @override
+  String get trip => 'Trip';
+
+  @override
+  String get group => 'Group';
+
+  @override
+  String get thread => 'Thread';
+
+  @override
+  String get recipe => 'Recipe';
+
+  @override
+  String get people => 'People';
+
+  @override
+  String get sportsTeams => 'Sports Teams';
+
+  @override
+  String get springEquinox => 'Spring Equinox';
+
+  @override
+  String get summerSolstice => 'Summer Solstice';
+
+  @override
+  String get autumnEquinox => 'Autumn Equinox';
+
+  @override
+  String get winterSolstice => 'Winter Solstice';
 }

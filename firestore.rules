@@ -71,10 +71,7 @@ service cloud.firestore {
     // Create/update/delete restricted to admin only
     match /recommendations/{recId} {
       allow read: if isAuthenticated();
-      // TEMPORARY: Allow all authenticated users to create for development/seeding
-      // TODO: Change back to `if isAdmin()` for production
-      allow create: if isAuthenticated();
-      allow update, delete: if isAdmin(); // Admin only
+      allow create, update, delete: if isAdmin(); // Admin only
     }
 
     // Bookmarks - read/write own only

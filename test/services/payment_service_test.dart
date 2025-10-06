@@ -5,6 +5,7 @@ import 'package:yajid/services/payment_service.dart';
 import 'package:yajid/models/payment_model.dart';
 
 // Mock classes
+// ignore: subtype_of_sealed_class
 class MockDocumentSnapshot<T> extends Mock implements DocumentSnapshot<T> {}
 
 void main() {

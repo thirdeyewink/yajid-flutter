@@ -16,10 +16,10 @@ class ChatListScreen extends StatefulWidget {
 
 class _ChatListScreenState extends State<ChatListScreen> {
   final MessagingService _messagingService = MessagingService();
-  bool _isSearching = false;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _searchController = TextEditingController();
   final Set<String> _selectedChatIds = {};
-  String _selectedCategory = 'Friends';
+  String _selectedCategory = 'Inbox';
 
   @override
   void initState() {
@@ -101,67 +101,164 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
+  void _showCreateOptions() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return Align(
+          alignment: Alignment.centerRight,
+          child: Material(
+            child: Container(
+              width: 280,
+              height: double.infinity,
+              color: Colors.white,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 40, right: 8),
+                    child: Align(
+                      alignment: Alignment.topRight,
+                      child: IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ),
+                  ),
+                  ListTile(
+                    contentPadding: const EdgeInsets.only(left: 8, right: 16),
+                    leading: const Icon(Icons.message, color: Colors.blue),
+                    title: Text(AppLocalizations.of(context)!.writeNewMessage),
+                    subtitle: Text(AppLocalizations.of(context)!.startConversation),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const UserSearchScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    contentPadding: const EdgeInsets.only(left: 8, right: 16),
+                    leading: const Icon(Icons.forum, color: Colors.orange),
+                    title: Text(AppLocalizations.of(context)!.startNewThread),
+                    subtitle: Text(AppLocalizations.of(context)!.startTopicDiscussion),
+                    onTap: () {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Center(child: Text('Thread creation coming soon!')),
+                          backgroundColor: Colors.orange,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    contentPadding: const EdgeInsets.only(left: 8, right: 16),
+                    leading: const Icon(Icons.group_add, color: Colors.green),
+                    title: Text(AppLocalizations.of(context)!.startGroupChat),
+                    subtitle: Text(AppLocalizations.of(context)!.chatWithMultiplePeople),
+                    onTap: () {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Center(child: Text('Group creation coming soon!')),
+                          backgroundColor: Colors.green,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(1, 0),
+            end: Offset.zero,
+          ).animate(animation),
+          child: child,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: AppTheme.screenBackground,
-      drawer: _buildNavigationDrawer(),
+      endDrawer: _buildNavigationDrawer(),
       appBar: AppBar(
         backgroundColor: Colors.black,
-        leading: _isSearching
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back, color: Colors.white),
-                onPressed: () {
-                  setState(() {
-                    _isSearching = false;
-                    _searchController.clear();
-                  });
-                },
-              )
-            : IconButton(
-                icon: const Icon(Icons.menu, color: Colors.white),
-                onPressed: () {
-                  Scaffold.of(context).openDrawer();
-                },
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16.0),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              _selectedCategory,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
               ),
-        title: _isSearching
-            ? TextField(
-                controller: _searchController,
-                autofocus: true,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  hintText: 'Search conversations...',
-                  hintStyle: TextStyle(color: Colors.white70),
-                  border: InputBorder.none,
-                ),
-              )
-            : const Text(
-                'Inbox',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+            ),
+          ),
+        ),
+        leadingWidth: 120,
+        title: Container(
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: TextField(
+            controller: _searchController,
+            style: const TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: 'Search conversations...',
+              hintStyle: const TextStyle(color: Colors.white70),
+              border: InputBorder.none,
+              prefixIcon: const Icon(Icons.search, color: Colors.white70, size: 20),
+              suffixIcon: _searchController.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear, color: Colors.white70, size: 20),
+                      onPressed: () {
+                        setState(() {
+                          _searchController.clear();
+                        });
+                      },
+                    )
+                  : null,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+            onChanged: (value) {
+              setState(() {});
+            },
+          ),
+        ),
         actions: _selectedChatIds.isEmpty
             ? [
                 IconButton(
-                  icon: const Icon(Icons.search, color: Colors.white),
-                  onPressed: () {
-                    setState(() {
-                      _isSearching = !_isSearching;
-                    });
-                  },
+                  icon: const Icon(Icons.add, color: Colors.white),
+                  onPressed: _showCreateOptions,
                 ),
                 IconButton(
-                  icon: const Icon(Icons.add, color: Colors.white),
+                  icon: const Icon(Icons.menu, color: Colors.white),
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const UserSearchScreen(),
-                      ),
-                    );
+                    _scaffoldKey.currentState?.openEndDrawer();
                   },
                 ),
               ]
@@ -373,34 +470,25 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return Drawer(
       child: Column(
         children: [
-          DrawerHeader(
-            decoration: const BoxDecoration(
-              color: Colors.black,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                AppTheme.buildLogo(),
-                const SizedBox(height: 16),
-                const Text(
-                  'Inbox Categories',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+          Padding(
+            padding: const EdgeInsets.only(top: 40, right: 8),
+            child: Align(
+              alignment: Alignment.topRight,
+              child: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
             ),
           ),
           _buildDrawerItem(
-            icon: Icons.people,
-            title: 'Friends',
-            isSelected: _selectedCategory == 'Friends',
+            icon: Icons.inbox,
+            title: 'Inbox',
+            isSelected: _selectedCategory == 'Inbox',
             onTap: () {
               setState(() {
-                _selectedCategory = 'Friends';
+                _selectedCategory = 'Inbox';
               });
               Navigator.pop(context);
             },
@@ -417,12 +505,12 @@ class _ChatListScreenState extends State<ChatListScreen> {
             },
           ),
           _buildDrawerItem(
-            icon: Icons.forum,
-            title: 'Threads',
-            isSelected: _selectedCategory == 'Threads',
+            icon: Icons.event,
+            title: 'Events',
+            isSelected: _selectedCategory == 'Events',
             onTap: () {
               setState(() {
-                _selectedCategory = 'Threads';
+                _selectedCategory = 'Events';
               });
               Navigator.pop(context);
             },
@@ -434,6 +522,17 @@ class _ChatListScreenState extends State<ChatListScreen> {
             onTap: () {
               setState(() {
                 _selectedCategory = 'Promotions';
+              });
+              Navigator.pop(context);
+            },
+          ),
+          _buildDrawerItem(
+            icon: Icons.drafts,
+            title: 'Draft',
+            isSelected: _selectedCategory == 'Draft',
+            onTap: () {
+              setState(() {
+                _selectedCategory = 'Draft';
               });
               Navigator.pop(context);
             },
@@ -472,6 +571,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     required VoidCallback onTap,
   }) {
     return ListTile(
+      contentPadding: const EdgeInsets.only(left: 8, right: 16),
       leading: Icon(
         icon,
         color: isSelected ? Colors.blue : Colors.grey.shade700,

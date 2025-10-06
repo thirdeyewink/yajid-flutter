@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:yajid/models/payment_model.dart';
 
 // Mock classes
+// ignore: subtype_of_sealed_class
 class MockDocumentSnapshot<T> extends Mock implements DocumentSnapshot<T> {}
 
 void main() {

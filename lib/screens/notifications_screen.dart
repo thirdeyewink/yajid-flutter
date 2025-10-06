@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:yajid/home_screen.dart';
 import 'package:yajid/theme/app_theme.dart';
 import 'package:yajid/widgets/shared_bottom_nav.dart';
 import 'package:yajid/l10n/app_localizations.dart';
@@ -12,6 +11,8 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
+  // Filter state
+  Set<String> _selectedFilters = {'social', 'recommendation', 'system'};
 
   // Sample notifications data
   final List<Map<String, dynamic>> _notifications = [
@@ -130,20 +131,102 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  void _showFilterDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Filter Notifications'),
+        content: StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CheckboxListTile(
+                  title: const Text('Social'),
+                  subtitle: const Text('Friend requests, comments, activity'),
+                  value: _selectedFilters.contains('social'),
+                  onChanged: (bool? value) {
+                    setDialogState(() {
+                      if (value == true) {
+                        _selectedFilters.add('social');
+                      } else {
+                        _selectedFilters.remove('social');
+                      }
+                    });
+                  },
+                ),
+                CheckboxListTile(
+                  title: const Text('Recommendations'),
+                  subtitle: const Text('New recommendations, trending'),
+                  value: _selectedFilters.contains('recommendation'),
+                  onChanged: (bool? value) {
+                    setDialogState(() {
+                      if (value == true) {
+                        _selectedFilters.add('recommendation');
+                      } else {
+                        _selectedFilters.remove('recommendation');
+                      }
+                    });
+                  },
+                ),
+                CheckboxListTile(
+                  title: const Text('System'),
+                  subtitle: const Text('Digests, updates'),
+                  value: _selectedFilters.contains('system'),
+                  onChanged: (bool? value) {
+                    setDialogState(() {
+                      if (value == true) {
+                        _selectedFilters.add('system');
+                      } else {
+                        _selectedFilters.remove('system');
+                      }
+                    });
+                  },
+                ),
+              ],
+            );
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _selectedFilters = {'social', 'recommendation', 'system'};
+              });
+              Navigator.pop(context);
+            },
+            child: const Text('Reset'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {});
+              Navigator.pop(context);
+            },
+            child: const Text('Apply'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.screenBackground,
       appBar: AppTheme.buildAppBar(
-        leading: AppTheme.buildLogo(
-          onTap: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
-            );
-          },
+        title: const Text(
+          'Notifications',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.filter_list, color: Colors.white),
+            onPressed: _showFilterDialog,
+          ),
           IconButton(
             icon: const Icon(Icons.close, color: Colors.white),
             onPressed: () {
@@ -154,13 +237,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ),
       body: _buildNotificationsList(),
       bottomNavigationBar: const SharedBottomNav(
-        currentIndex: 3, // Notifications index
+        currentIndex: 0, // Home index
       ),
     );
   }
 
   Widget _buildNotificationsList() {
-    if (_notifications.isEmpty) {
+    // Filter notifications based on selected filters
+    final filteredNotifications = _notifications
+        .where((notification) => _selectedFilters.contains(notification['type']))
+        .toList();
+
+    if (filteredNotifications.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -193,9 +281,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     return ListView.builder(
       padding: const EdgeInsets.all(8),
-      itemCount: _notifications.length,
+      itemCount: filteredNotifications.length,
       itemBuilder: (context, index) {
-        final notification = _notifications[index];
+        final notification = filteredNotifications[index];
         return _buildNotificationCard(notification);
       },
     );

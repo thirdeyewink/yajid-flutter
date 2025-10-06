@@ -6,10 +6,14 @@ import 'package:yajid/models/venue_model.dart';
 
 // Mock classes
 class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
+// ignore: subtype_of_sealed_class
 class MockCollectionReference<T> extends Mock implements CollectionReference<T> {}
+// ignore: subtype_of_sealed_class
 class MockDocumentReference<T> extends Mock implements DocumentReference<T> {}
+// ignore: subtype_of_sealed_class
 class MockDocumentSnapshot<T> extends Mock implements DocumentSnapshot<T> {}
 class MockQuerySnapshot<T> extends Mock implements QuerySnapshot<T> {}
+// ignore: subtype_of_sealed_class
 class MockQuery<T> extends Mock implements Query<T> {}
 
 void main() {

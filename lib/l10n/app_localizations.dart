@@ -823,6 +823,162 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Retry'**
   String get retry;
+
+  /// No description provided for @userName.
+  ///
+  /// In en, this message translates to:
+  /// **'User Name'**
+  String get userName;
+
+  /// No description provided for @writeNewMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Write a New Message'**
+  String get writeNewMessage;
+
+  /// No description provided for @startConversation.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a conversation with someone'**
+  String get startConversation;
+
+  /// No description provided for @startNewThread.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a New Thread'**
+  String get startNewThread;
+
+  /// No description provided for @startTopicDiscussion.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a topic-based discussion'**
+  String get startTopicDiscussion;
+
+  /// No description provided for @startGroupChat.
+  ///
+  /// In en, this message translates to:
+  /// **'Start a Group Chat'**
+  String get startGroupChat;
+
+  /// No description provided for @chatWithMultiplePeople.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with multiple people'**
+  String get chatWithMultiplePeople;
+
+  /// No description provided for @addYourBusiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Your Business'**
+  String get addYourBusiness;
+
+  /// No description provided for @newTrip.
+  ///
+  /// In en, this message translates to:
+  /// **'New Trip'**
+  String get newTrip;
+
+  /// No description provided for @createGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Group'**
+  String get createGroup;
+
+  /// No description provided for @createThread.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Thread'**
+  String get createThread;
+
+  /// No description provided for @addRecipe.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Recipe'**
+  String get addRecipe;
+
+  /// No description provided for @addNewContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New Content'**
+  String get addNewContent;
+
+  /// No description provided for @tapPlusToGetStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the + button above to get started'**
+  String get tapPlusToGetStarted;
+
+  /// No description provided for @business.
+  ///
+  /// In en, this message translates to:
+  /// **'Business'**
+  String get business;
+
+  /// No description provided for @event.
+  ///
+  /// In en, this message translates to:
+  /// **'Event'**
+  String get event;
+
+  /// No description provided for @trip.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip'**
+  String get trip;
+
+  /// No description provided for @group.
+  ///
+  /// In en, this message translates to:
+  /// **'Group'**
+  String get group;
+
+  /// No description provided for @thread.
+  ///
+  /// In en, this message translates to:
+  /// **'Thread'**
+  String get thread;
+
+  /// No description provided for @recipe.
+  ///
+  /// In en, this message translates to:
+  /// **'Recipe'**
+  String get recipe;
+
+  /// No description provided for @people.
+  ///
+  /// In en, this message translates to:
+  /// **'People'**
+  String get people;
+
+  /// No description provided for @sportsTeams.
+  ///
+  /// In en, this message translates to:
+  /// **'Sports Teams'**
+  String get sportsTeams;
+
+  /// No description provided for @springEquinox.
+  ///
+  /// In en, this message translates to:
+  /// **'Spring Equinox'**
+  String get springEquinox;
+
+  /// No description provided for @summerSolstice.
+  ///
+  /// In en, this message translates to:
+  /// **'Summer Solstice'**
+  String get summerSolstice;
+
+  /// No description provided for @autumnEquinox.
+  ///
+  /// In en, this message translates to:
+  /// **'Autumn Equinox'**
+  String get autumnEquinox;
+
+  /// No description provided for @winterSolstice.
+  ///
+  /// In en, this message translates to:
+  /// **'Winter Solstice'**
+  String get winterSolstice;
 }
 
 class _AppLocalizationsDelegate

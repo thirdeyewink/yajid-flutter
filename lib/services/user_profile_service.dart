@@ -47,6 +47,10 @@ class UserProfileService {
 
   Future<bool> updatePersonalInfo({
     String? displayName,
+    String? displayNameAr,
+    String? displayNameEs,
+    String? displayNameFr,
+    String? displayNamePt,
     String? email,
     String? phoneNumber,
     String? birthday,
@@ -57,6 +61,10 @@ class UserProfileService {
     try {
       Map<String, dynamic> updateData = {};
       if (displayName != null) updateData['displayName'] = displayName;
+      if (displayNameAr != null) updateData['displayName_ar'] = displayNameAr;
+      if (displayNameEs != null) updateData['displayName_es'] = displayNameEs;
+      if (displayNameFr != null) updateData['displayName_fr'] = displayNameFr;
+      if (displayNamePt != null) updateData['displayName_pt'] = displayNamePt;
       if (email != null) updateData['email'] = email;
       if (phoneNumber != null) updateData['phoneNumber'] = phoneNumber;
       if (birthday != null) updateData['birthday'] = birthday;

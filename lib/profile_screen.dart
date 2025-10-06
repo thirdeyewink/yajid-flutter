@@ -5,6 +5,7 @@ import 'package:yajid/l10n/app_localizations.dart';
 import 'package:yajid/services/user_profile_service.dart';
 import 'package:yajid/theme/app_theme.dart';
 import 'package:yajid/screens/gamification_screen.dart';
+import 'package:yajid/screens/edit_profile_screen.dart';
 import 'package:yajid/services/logging_service.dart';
 import 'package:yajid/settings_screen.dart';
 
@@ -469,6 +470,20 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
                     },
                   ),
                   const Spacer(),
+                  // Edit profile icon
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, color: Colors.white),
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+                      );
+                      // Reload profile if it was updated
+                      if (result == true) {
+                        _initializeUserData();
+                      }
+                    },
+                  ),
                   // Settings icon
                   IconButton(
                     icon: const Icon(Icons.settings_outlined, color: Colors.white),
@@ -507,6 +522,8 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
                   labelColor: Colors.blue,
                   unselectedLabelColor: Colors.grey,
                   indicatorColor: Colors.blue,
+                  isScrollable: true,
+                  tabAlignment: TabAlignment.start,
                   tabs: const [
                     Tab(text: 'Friends'),
                     Tab(text: 'Info'),
@@ -584,7 +601,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
             ),
             const SizedBox(height: 16),
             Text(
-              _displayName.isNotEmpty ? _displayName : 'User Name',
+              _displayName.isNotEmpty ? _displayName : AppLocalizations.of(context)!.userName,
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,

@@ -386,4 +386,82 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get retry => 'Tentar Novamente';
+
+  @override
+  String get userName => 'Nome de Usuário';
+
+  @override
+  String get writeNewMessage => 'Escrever uma Nova Mensagem';
+
+  @override
+  String get startConversation => 'Iniciar uma conversa com alguém';
+
+  @override
+  String get startNewThread => 'Iniciar um Novo Tópico';
+
+  @override
+  String get startTopicDiscussion => 'Iniciar uma discussão sobre um tópico';
+
+  @override
+  String get startGroupChat => 'Iniciar um Chat em Grupo';
+
+  @override
+  String get chatWithMultiplePeople => 'Conversar com várias pessoas';
+
+  @override
+  String get addYourBusiness => 'Adicionar Seu Negócio';
+
+  @override
+  String get newTrip => 'Nova Viagem';
+
+  @override
+  String get createGroup => 'Criar Grupo';
+
+  @override
+  String get createThread => 'Criar Tópico';
+
+  @override
+  String get addRecipe => 'Adicionar Receita';
+
+  @override
+  String get addNewContent => 'Adicionar Novo Conteúdo';
+
+  @override
+  String get tapPlusToGetStarted => 'Toque no botão + para começar';
+
+  @override
+  String get business => 'Negócio';
+
+  @override
+  String get event => 'Evento';
+
+  @override
+  String get trip => 'Viagem';
+
+  @override
+  String get group => 'Grupo';
+
+  @override
+  String get thread => 'Tópico';
+
+  @override
+  String get recipe => 'Receita';
+
+  @override
+  String get people => 'Pessoas';
+
+  @override
+  String get sportsTeams => 'Equipes Esportivas';
+
+  @override
+  String get springEquinox => 'Equinócio de Primavera';
+
+  @override
+  String get summerSolstice => 'Solstício de Verão';
+
+  @override
+  String get autumnEquinox => 'Equinócio de Outono';
+
+  @override
+  String get winterSolstice => 'Solstício de Inverno';
 }
