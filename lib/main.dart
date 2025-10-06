@@ -21,7 +21,6 @@ import 'package:yajid/bloc/auth/auth_event.dart';
 import 'package:yajid/bloc/auth/auth_state.dart';
 import 'package:yajid/bloc/profile/profile_bloc.dart';
 import 'package:yajid/bloc/gamification/gamification_bloc.dart';
-import 'package:yajid/bloc/gamification/gamification_event.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,8 +62,8 @@ class MyApp extends StatelessWidget {
           lazy: true, // Created on first access
         ),
         BlocProvider<GamificationBloc>(
-          create: (context) => GamificationBloc()..add(InitializeGamification()),
-          lazy: false, // Needed for app bar points widget
+          create: (context) => GamificationBloc(),
+          lazy: true, // Created when user logs in and points widget accessed
         ),
 
         // Provider - Simple UI state (see ADR-001)
