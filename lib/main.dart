@@ -20,6 +20,8 @@ import 'package:yajid/bloc/auth/auth_bloc.dart';
 import 'package:yajid/bloc/auth/auth_event.dart';
 import 'package:yajid/bloc/auth/auth_state.dart';
 import 'package:yajid/bloc/profile/profile_bloc.dart';
+import 'package:yajid/bloc/gamification/gamification_bloc.dart';
+import 'package:yajid/bloc/gamification/gamification_event.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,15 +53,21 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        // BLoC Providers
+        // BLoC Providers - Complex business logic (see ADR-001, ADR-002)
         BlocProvider<AuthBloc>(
           create: (context) => AuthBloc()..add(const AuthStarted()),
+          lazy: false, // Needed at app startup
         ),
         BlocProvider<ProfileBloc>(
           create: (context) => ProfileBloc(),
+          lazy: true, // Created on first access
+        ),
+        BlocProvider<GamificationBloc>(
+          create: (context) => GamificationBloc()..add(InitializeGamification()),
+          lazy: false, // Needed for app bar points widget
         ),
 
-        // Legacy Provider support for migration
+        // Provider - Simple UI state (see ADR-001)
         ChangeNotifierProvider(create: (context) => LocaleProvider()),
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(create: (context) => OnboardingProvider()),
