@@ -57,7 +57,6 @@ void main() {
     });
 
     test('copyWith updates specified fields', () {
-      final now = DateTime.now();
       final original = UserLevel.initial('user123');
 
       final updated = original.copyWith(

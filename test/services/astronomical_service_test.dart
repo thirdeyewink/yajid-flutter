@@ -222,9 +222,7 @@ void main() {
         expect(holidaysEn, isNotEmpty);
         expect(holidaysAr, isNotEmpty);
 
-        // Count might differ due to cultural differences
-        expect(holidaysEn.length > 0, true);
-        expect(holidaysAr.length > 0, true);
+        // Holidays count might differ due to cultural differences
       });
     });
 

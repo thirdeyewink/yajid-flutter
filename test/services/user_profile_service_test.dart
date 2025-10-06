@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:yajid/services/user_profile_service.dart';
 
 // Mock classes
 // ignore: subtype_of_sealed_class
@@ -60,12 +59,8 @@ void main() {
         when(() => mockDocSnapshot.exists).thenReturn(true);
         when(() => mockDocSnapshot.data()).thenReturn(userData);
 
-        // Create service instance with mocks
-        final service = UserProfileService();
         // Note: In real implementation, we'd need dependency injection
-        // For now, this test documents the expected behavior
-
-        // The test verifies the logic, though actual implementation uses singleton
+        // The test verifies the expected behavior, though actual implementation uses singleton
         // which makes true unit testing difficult without DI
 
         // Verify the expected behavior
@@ -289,7 +284,6 @@ void main() {
 
       test('role field type safety', () {
         // Arrange
-        final validRole = 'admin';
         final invalidRoles = [
           123, // number
           true, // boolean
@@ -297,8 +291,7 @@ void main() {
           {}, // object
         ];
 
-        // Verify the expected behavior
-        expect(validRole is String, true);
+        // Verify that non-string types are correctly identified
         for (final invalidRole in invalidRoles) {
           expect(invalidRole is String, false);
         }
