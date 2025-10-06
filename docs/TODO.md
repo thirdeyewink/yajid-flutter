@@ -1,9 +1,104 @@
 # YAJID Project - Comprehensive TODO & Improvement Plan
 
 **Generated:** October 1, 2025
-**Last Updated:** October 5, 2025
+**Last Updated:** October 6, 2025
 **Status:** Production Ready (Phase 1 Complete)
 **Priority:** Medium
+
+## NEW CRITICAL FINDINGS (Oct 6, 2025)
+
+### 🔴 P0 - CRITICAL ISSUES REQUIRING IMMEDIATE ATTENTION
+
+#### 1. Documentation Date Inconsistencies
+**Issue**: Multiple documents contain impossible or incorrect dates:
+- PRD-001 (v1.3): Dated "September 11, 2025" (future date when written)
+- FSD-004 (v3.0): Dated "January 15, 2024" (past date, should be 2025)
+- SEC-028 (v1.0): Dated "September 06, 2025" (future date when written)
+
+**Current Date**: October 6, 2025
+**Impact**: Undermines documentation credibility, suggests poor project management discipline
+**Fix Time**: 20 minutes
+**Action**: Update all document dates to actual creation/update dates
+
+#### 2. Pubspec.yaml Generic Description
+**Issue**: pubspec.yaml contains template description: "A new Flutter project."
+**Should Be**: "Yajid - Lifestyle & Social Discovery Super App"
+**Impact**: Unprofessional, affects app store listings
+**Fix Time**: 2 minutes
+**Action**: Update description field
+
+#### 3. Temporary Code Comments
+**Issue**: main.dart line 129 contains: "// Minor change to trigger hot reload"
+**Impact**: Code smell, unprofessional in production code
+**Fix Time**: 1 minute
+**Action**: Remove temporary comment
+
+### 🟡 P1 - HIGH PRIORITY ISSUES
+
+#### 4. Undocumented Features
+**Found**: Three features exist in code but are NOT documented in PRD/FSD:
+1. **astronomical_service.dart** - Islamic prayer times calculation using `lunar` package
+   - Uses `geolocator` for location-based prayer times
+   - Culturally important feature for Moroccan market
+   - Should be highlighted in PRD as cultural differentiation
+
+2. **edit_profile_screen.dart** - Separate profile editing interface
+   - Exists alongside profile_screen.dart
+   - Not mentioned in screen documentation
+
+3. **admin_seed_screen.dart** - Admin data seeding functionality
+   - Development/admin tool in production codebase
+   - Should verify access control or move to dev-only
+
+**Impact**: Incomplete documentation, unclear feature scope
+**Fix Time**: 2 hours to properly document
+**Action**: Add to PRD, FSD, and feature documentation
+
+#### 5. Mixed State Management Architecture
+**Issue**: Project uses both Provider (legacy) and BLoC patterns inconsistently
+
+**Provider Pattern** (marked "Legacy" in code comments):
+- LocaleProvider
+- ThemeProvider
+- OnboardingProvider
+
+**BLoC Pattern** (newer, preferred):
+- AuthBloc ✅ (wired in main.dart)
+- ProfileBloc ✅ (wired in main.dart)
+- GamificationBloc ⚠️ (exists but NOT wired in main.dart)
+- NavigationBloc ⚠️ (exists but NOT wired in main.dart)
+- VenueBloc ⚠️ (exists but NOT wired in main.dart)
+- BookingBloc ⚠️ (exists but NOT wired in main.dart)
+- PaymentBloc ⚠️ (exists but NOT wired in main.dart)
+
+**Questions**:
+- Why are some BLoCs not provided at app level?
+- Is the BLoC migration plan complete or abandoned?
+- Should Provider be retained for simple global state (locale, theme)?
+
+**Impact**: Code inconsistency, maintenance complexity, onboarding confusion
+**Fix Time**: 1 week to complete migration or document hybrid strategy
+**Action**: Document decision in architecture docs OR complete migration to BLoC
+
+### 📊 Code Quality Summary (Oct 6, 2025)
+
+**Strengths** ✅:
+- Flutter analyze: 0 issues (perfect score)
+- Test pass rate: 86.9% (342/398 tests)
+- Clean file structure and organization
+- Comprehensive BLoC architecture
+- Security properly implemented (Crashlytics, Performance Monitoring, Secure Storage)
+- 5-language localization complete
+- Firebase properly configured
+
+**Weaknesses** ⚠️:
+- Test coverage: 21.3% (target: 40%+)
+- Integration tests: 56 failing (need Firebase Emulator)
+- Documentation-reality gaps
+- Mixed state management patterns
+- Undocumented features
+
+---
 
 ## Executive Summary
 

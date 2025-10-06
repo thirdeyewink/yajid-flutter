@@ -126,4 +126,3 @@ class _AuthWrapperState extends State<AuthWrapper> {
     );
   }
 }
-// Minor change to trigger hot reload
