@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:yajid/models/recommendation_model.dart';
 import 'package:yajid/services/recommendation_service.dart';
 import 'package:yajid/services/user_profile_service.dart';
+import 'package:yajid/services/biometric_auth_service.dart';
 
 /// Admin screen for seeding initial recommendation data
 /// Access this screen from Settings > Advanced > Seed Data
@@ -16,6 +17,7 @@ class AdminSeedScreen extends StatefulWidget {
 class _AdminSeedScreenState extends State<AdminSeedScreen> {
   final RecommendationService _service = RecommendationService();
   final UserProfileService _profileService = UserProfileService();
+  final BiometricAuthService _biometricService = BiometricAuthService();
   bool _isSeeding = false;
   bool _isCheckingAuth = true;
   bool _isAdmin = false;
@@ -44,6 +46,30 @@ class _AdminSeedScreenState extends State<AdminSeedScreen> {
   }
 
   Future<void> _seedData() async {
+    // Require biometric authentication for this sensitive operation
+    final isBiometricEnabled = await _biometricService.isBiometricEnabled();
+    if (isBiometricEnabled) {
+      final authenticated = await _biometricService.authenticateWithFallback(
+        localizedReason: 'Authenticate to seed database with sample data',
+      );
+
+      if (!authenticated) {
+        if (mounted) {
+          setState(() {
+            _status = 'Authentication required to seed data';
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Center(child: Text('Authentication failed')),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        return;
+      }
+    }
+
     setState(() {
       _isSeeding = true;
       _status = 'Starting seed process...';

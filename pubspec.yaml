@@ -49,6 +49,8 @@ dependencies:
 
   # Security
   flutter_secure_storage: ^9.0.0
+  local_auth: ^2.3.0
+  http_certificate_pinning: ^2.1.1
 
   # Image Caching
   cached_network_image: ^3.3.1

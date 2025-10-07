@@ -4,11 +4,28 @@ import '../models/payment_model.dart';
 
 /// Payment service for handling payments via CMI (Moroccan cards) and Stripe (international cards)
 ///
+/// SECURITY: Biometric authentication is REQUIRED for all payment operations
+/// Use BiometricPrompt widget before calling payment methods:
+///
+/// ```dart
+/// final authenticated = await BiometricPrompt.showForPayment(
+///   context: context,
+///   amount: 50.00,
+///   currency: 'USD',
+///   description: 'Premium subscription',
+/// );
+///
+/// if (authenticated) {
+///   final payment = await paymentService.processCMIPayment(...);
+/// }
+/// ```
+///
 /// NOTE: This is a stub implementation. Full integration requires:
 /// - CMI payment gateway SDK and credentials
 /// - Stripe Flutter SDK (flutter_stripe package)
 /// - PCI DSS compliance certification
 /// - Secure backend server for payment processing
+/// - Certificate pinning for payment gateway endpoints
 class PaymentService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final Logger _logger = Logger();

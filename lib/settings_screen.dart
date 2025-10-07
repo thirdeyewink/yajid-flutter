@@ -7,6 +7,7 @@ import 'package:yajid/theme_provider.dart';
 import 'package:yajid/onboarding_provider.dart';
 import 'package:yajid/auth_screen.dart';
 import 'package:yajid/screens/admin_seed_screen.dart';
+import 'package:yajid/services/biometric_auth_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -16,7 +17,108 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  final BiometricAuthService _biometricService = BiometricAuthService();
   bool _isLoggingOut = false;
+  bool _isBiometricEnabled = false;
+  bool _isBiometricSupported = false;
+  bool _isLoadingBiometricInfo = true;
+  String _biometricDescription = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBiometricInfo();
+  }
+
+  Future<void> _loadBiometricInfo() async {
+    final isSupported = await _biometricService.isDeviceSupported();
+    final isEnabled = await _biometricService.isBiometricEnabled();
+    final description = await _biometricService.getBiometricDescription();
+
+    if (mounted) {
+      setState(() {
+        _isBiometricSupported = isSupported;
+        _isBiometricEnabled = isEnabled;
+        _biometricDescription = description;
+        _isLoadingBiometricInfo = false;
+      });
+    }
+  }
+
+  Future<void> _toggleBiometric(bool value) async {
+    if (!_isBiometricSupported) {
+      _showBiometricNotSupportedDialog();
+      return;
+    }
+
+    // If enabling, authenticate first to verify biometrics work
+    if (value) {
+      final authenticated = await _biometricService.authenticate(
+        localizedReason: 'Enable biometric authentication for sensitive operations',
+      );
+
+      if (!authenticated) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Center(child: Text('Biometric authentication failed')),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        return;
+      }
+    }
+
+    final success = await _biometricService.setBiometricEnabled(value);
+
+    if (success && mounted) {
+      setState(() {
+        _isBiometricEnabled = value;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Center(
+            child: Text(
+              value
+                  ? 'Biometric authentication enabled'
+                  : 'Biometric authentication disabled',
+            ),
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Center(child: Text('Failed to update biometric settings')),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  void _showBiometricNotSupportedDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Biometric Not Available'),
+        content: const Text(
+          'Your device does not support biometric authentication or no biometrics are enrolled.\n\n'
+          'Please set up Face ID, Touch ID, or Fingerprint in your device settings.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
 
   void _showLanguageDialog(BuildContext context) {
     showDialog(
@@ -120,6 +222,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   themeProvider.toggleTheme();
                 },
               ),
+            ),
+            const SizedBox(height: 16),
+
+            // Security Section
+            const Text(
+              'Security',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Card(
+              child: _isLoadingBiometricInfo
+                  ? const ListTile(
+                      leading: Icon(Icons.fingerprint),
+                      title: Text('Biometric Authentication'),
+                      trailing: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : SwitchListTile(
+                      secondary: Icon(
+                        _isBiometricSupported
+                            ? Icons.fingerprint
+                            : Icons.fingerprint_outlined,
+                        color: _isBiometricSupported ? Colors.green : Colors.grey,
+                      ),
+                      title: const Text('Biometric Authentication'),
+                      subtitle: Text(
+                        _isBiometricSupported
+                            ? _isBiometricEnabled
+                                ? 'Enabled · $_biometricDescription'
+                                : 'Disabled · $_biometricDescription'
+                            : 'Not available on this device',
+                      ),
+                      value: _isBiometricEnabled && _isBiometricSupported,
+                      onChanged: _isBiometricSupported ? _toggleBiometric : null,
+                    ),
             ),
             const SizedBox(height: 16),
 

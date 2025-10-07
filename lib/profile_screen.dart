@@ -8,6 +8,7 @@ import 'package:yajid/screens/gamification_screen.dart';
 import 'package:yajid/screens/edit_profile_screen.dart';
 import 'package:yajid/services/logging_service.dart';
 import 'package:yajid/settings_screen.dart';
+import 'package:yajid/services/biometric_auth_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -19,6 +20,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateMixin {
   final User? user = FirebaseAuth.instance.currentUser;
   final UserProfileService _profileService = UserProfileService();
+  final BiometricAuthService _biometricService = BiometricAuthService();
   late TabController _tabController;
   bool _isLoading = true;
 
@@ -229,6 +231,27 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
           ),
           TextButton(
             onPressed: () async {
+              // Require biometric authentication for sensitive profile edits
+              final isBiometricEnabled = await _biometricService.isBiometricEnabled();
+              if (isBiometricEnabled) {
+                final authenticated = await _biometricService.authenticateWithFallback(
+                  localizedReason: 'Authenticate to update your $title',
+                );
+
+                if (!authenticated) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Center(child: Text('Authentication required to save changes')),
+                        backgroundColor: Colors.red,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                  return;
+                }
+              }
+
               await onSave(controller.text);
               if (context.mounted) {
                 Navigator.pop(context);
@@ -249,6 +272,27 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
       lastDate: DateTime.now(),
     );
     if (picked != null) {
+      // Require biometric authentication before saving birthday
+      final isBiometricEnabled = await _biometricService.isBiometricEnabled();
+      if (isBiometricEnabled) {
+        final authenticated = await _biometricService.authenticateWithFallback(
+          localizedReason: 'Authenticate to update your birthday',
+        );
+
+        if (!authenticated) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Center(child: Text('Authentication required to save changes')),
+                backgroundColor: Colors.red,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+          return;
+        }
+      }
+
       final birthdayString = '${picked.day}/${picked.month}/${picked.year}';
 
       // Save to Firestore
@@ -328,6 +372,27 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
           TextButton(
             onPressed: () async {
               if (controller.text.trim().isNotEmpty) {
+                // Require biometric authentication
+                final isBiometricEnabled = await _biometricService.isBiometricEnabled();
+                if (isBiometricEnabled) {
+                  final authenticated = await _biometricService.authenticateWithFallback(
+                    localizedReason: 'Authenticate to add skill',
+                  );
+
+                  if (!authenticated) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Center(child: Text('Authentication required to save changes')),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                    return;
+                  }
+                }
+
                 // Update local state
                 setState(() {
                   _skills[category]?.add(controller.text.trim());
@@ -366,6 +431,27 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
   }
 
   void _removeSkill(String category, String skill) async {
+    // Require biometric authentication
+    final isBiometricEnabled = await _biometricService.isBiometricEnabled();
+    if (isBiometricEnabled) {
+      final authenticated = await _biometricService.authenticateWithFallback(
+        localizedReason: 'Authenticate to remove skill',
+      );
+
+      if (!authenticated) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Center(child: Text('Authentication required to save changes')),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        return;
+      }
+    }
+
     // Update local state
     setState(() {
       _skills[category]?.remove(skill);
