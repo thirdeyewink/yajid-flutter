@@ -8,6 +8,7 @@ import 'package:yajid/onboarding_provider.dart';
 import 'package:yajid/auth_screen.dart';
 import 'package:yajid/screens/admin_seed_screen.dart';
 import 'package:yajid/services/biometric_auth_service.dart';
+import 'package:yajid/services/jailbreak_detection_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -18,16 +19,22 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   final BiometricAuthService _biometricService = BiometricAuthService();
+  final JailbreakDetectionService _jailbreakService = JailbreakDetectionService();
   bool _isLoggingOut = false;
   bool _isBiometricEnabled = false;
   bool _isBiometricSupported = false;
   bool _isLoadingBiometricInfo = true;
   String _biometricDescription = '';
 
+  // Device security state
+  bool _isLoadingDeviceSecurity = true;
+  DeviceSecurityStatus? _deviceSecurityStatus;
+
   @override
   void initState() {
     super.initState();
     _loadBiometricInfo();
+    _loadDeviceSecurityInfo();
   }
 
   Future<void> _loadBiometricInfo() async {
@@ -42,6 +49,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _biometricDescription = description;
         _isLoadingBiometricInfo = false;
       });
+    }
+  }
+
+  Future<void> _loadDeviceSecurityInfo() async {
+    try {
+      final status = await _jailbreakService.checkDeviceSecurity();
+
+      if (mounted) {
+        setState(() {
+          _deviceSecurityStatus = status;
+          _isLoadingDeviceSecurity = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingDeviceSecurity = false;
+        });
+      }
     }
   }
 
@@ -114,6 +140,144 @@ class _SettingsScreenState extends State<SettingsScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeviceSecurityDetails() {
+    if (_deviceSecurityStatus == null) {
+      return;
+    }
+
+    final status = _deviceSecurityStatus!;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(
+              status.isCompromised
+                  ? Icons.warning_amber_rounded
+                  : Icons.verified_user,
+              color: status.isCompromised ? Colors.orange : Colors.green,
+              size: 28,
+            ),
+            const SizedBox(width: 12),
+            const Text('Device Security'),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Status
+              Text(
+                'Status: ${status.type.displayName}',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: status.isCompromised ? Colors.orange : Colors.green,
+                    ),
+              ),
+              const SizedBox(height: 16),
+
+              // Message
+              Text(
+                status.message,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 16),
+
+              // Recommendation
+              if (status.recommendation.isNotEmpty) ...[
+                const Divider(),
+                const SizedBox(height: 8),
+                Text(
+                  'Recommendation',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  status.recommendation,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 16),
+              ],
+
+              // Security implications
+              const Divider(),
+              const SizedBox(height: 8),
+              Text(
+                'Security Implications',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: status.isCompromised
+                      ? Theme.of(context).colorScheme.errorContainer.withOpacity(0.3)
+                      : Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          status.isCompromised ? Icons.block : Icons.check_circle,
+                          size: 16,
+                          color: status.isCompromised ? Colors.red : Colors.green,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            status.isCompromised
+                                ? 'Payment operations may be restricted'
+                                : 'All operations are permitted',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(
+                          status.allowAppUsage ? Icons.check_circle : Icons.block,
+                          size: 16,
+                          color: status.allowAppUsage ? Colors.green : Colors.red,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            status.allowAppUsage
+                                ? 'App usage is permitted'
+                                : 'App usage is blocked',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Close'),
           ),
         ],
       ),
@@ -262,6 +426,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       value: _isBiometricEnabled && _isBiometricSupported,
                       onChanged: _isBiometricSupported ? _toggleBiometric : null,
+                    ),
+            ),
+            const SizedBox(height: 8),
+
+            // Device Security Status
+            Card(
+              child: _isLoadingDeviceSecurity
+                  ? const ListTile(
+                      leading: Icon(Icons.security),
+                      title: Text('Device Security'),
+                      trailing: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : ListTile(
+                      leading: Icon(
+                        _deviceSecurityStatus?.isCompromised == true
+                            ? Icons.warning_amber_rounded
+                            : Icons.verified_user,
+                        color: _deviceSecurityStatus?.isCompromised == true
+                            ? Colors.orange
+                            : Colors.green,
+                        size: 28,
+                      ),
+                      title: const Text('Device Security'),
+                      subtitle: Text(
+                        _deviceSecurityStatus?.message ?? 'Unable to check device security',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () => _showDeviceSecurityDetails(),
                     ),
             ),
             const SizedBox(height: 16),

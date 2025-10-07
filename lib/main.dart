@@ -22,6 +22,9 @@ import 'package:yajid/bloc/auth/auth_state.dart';
 import 'package:yajid/bloc/profile/profile_bloc.dart';
 import 'package:yajid/bloc/gamification/gamification_bloc.dart';
 
+// Security
+import 'package:yajid/services/jailbreak_detection_service.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
@@ -95,6 +98,108 @@ class AuthWrapper extends StatefulWidget {
 }
 
 class _AuthWrapperState extends State<AuthWrapper> {
+  final _jailbreakService = JailbreakDetectionService();
+  bool _securityCheckCompleted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _performSecurityCheck();
+  }
+
+  Future<void> _performSecurityCheck() async {
+    try {
+      final status = await _jailbreakService.checkDeviceSecurity();
+
+      if (mounted && status.isCompromised) {
+        // Show security warning dialog
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && !_securityCheckCompleted) {
+            _showSecurityWarningDialog(status);
+            _securityCheckCompleted = true;
+          }
+        });
+      } else {
+        _securityCheckCompleted = true;
+      }
+    } catch (e) {
+      // Fail open - allow app to continue if security check fails
+      _securityCheckCompleted = true;
+    }
+  }
+
+  void _showSecurityWarningDialog(DeviceSecurityStatus status) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(
+              Icons.warning_amber_rounded,
+              color: Theme.of(context).colorScheme.error,
+              size: 28,
+            ),
+            const SizedBox(width: 12),
+            const Text('Security Warning'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              status.message,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+            if (status.recommendation.isNotEmpty)
+              Text(
+                status.recommendation,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.errorContainer.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Sensitive operations like payments may be restricted on this device.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('I Understand'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
