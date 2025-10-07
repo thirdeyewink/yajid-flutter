@@ -21,6 +21,10 @@ import 'package:yajid/bloc/auth/auth_event.dart';
 import 'package:yajid/bloc/auth/auth_state.dart';
 import 'package:yajid/bloc/profile/profile_bloc.dart';
 import 'package:yajid/bloc/gamification/gamification_bloc.dart';
+import 'package:yajid/bloc/booking/booking_bloc.dart';
+import 'package:yajid/services/booking_service.dart';
+import 'package:yajid/bloc/event/event_bloc.dart';
+import 'package:yajid/services/event_service.dart';
 
 // Security
 import 'package:yajid/services/jailbreak_detection_service.dart';
@@ -67,6 +71,14 @@ class MyApp extends StatelessWidget {
         BlocProvider<GamificationBloc>(
           create: (context) => GamificationBloc(),
           lazy: true, // Created when user logs in and points widget accessed
+        ),
+        BlocProvider<BookingBloc>(
+          create: (context) => BookingBloc(bookingService: BookingService()),
+          lazy: true,
+        ),
+        BlocProvider<EventBloc>(
+          create: (context) => EventBloc(EventService()),
+          lazy: true,
         ),
 
         // Provider - Simple UI state (see ADR-001)

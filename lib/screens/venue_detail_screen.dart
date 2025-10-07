@@ -4,6 +4,7 @@ import '../bloc/venue/venue_bloc.dart';
 import '../bloc/venue/venue_event.dart';
 import '../bloc/venue/venue_state.dart';
 import '../models/venue_model.dart';
+import 'booking_flow_screen.dart';
 
 class VenueDetailScreen extends StatefulWidget {
   final VenueModel venue;
@@ -286,9 +287,12 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
           width: double.infinity,
           child: ElevatedButton(
             onPressed: () {
-              // Navigate to booking screen
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Booking feature coming soon')),
+              // Navigate to booking flow screen
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BookingFlowScreen(venue: widget.venue),
+                ),
               );
             },
             style: ElevatedButton.styleFrom(

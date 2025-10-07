@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:yajid/theme/app_theme.dart';
 import 'package:yajid/l10n/app_localizations.dart';
 import 'package:yajid/services/astronomical_service.dart';
+import 'package:yajid/bloc/event/event_bloc.dart';
+import 'package:yajid/bloc/event/event_event.dart';
+import 'package:yajid/models/event_model.dart';
 import 'package:geolocator/geolocator.dart';
 
 class CalendarScreen extends StatefulWidget {
@@ -985,86 +990,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   void _showCreateEventDialog(DateTime date, int hour) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.createEvent),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.event_available, size: 32, color: Colors.blue),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${date.day}/${date.month}/${date.year}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        _formatHour(hour),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Event creation feature coming soon!',
-              style: TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'You\'ll be able to add movies, concerts, restaurant visits, and more to your calendar at this time slot.',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-              textAlign: TextAlign.left,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(AppLocalizations.of(context)!.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Center(child: Text('Event creation coming soon!')),
-                  backgroundColor: Colors.blue,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
-            child: Text(AppLocalizations.of(context)!.createEvent),
-          ),
-        ],
-      ),
-    );
+    // Navigate to the add event dialog with pre-filled date and time
+    _showAddEventDialog(prefilledDate: date, prefilledHour: hour);
   }
 
-  void _showAddEventDialog() {
+  void _showAddEventDialog({DateTime? prefilledDate, int? prefilledHour}) {
     final titleController = TextEditingController();
     final descriptionController = TextEditingController();
     final placeController = TextEditingController();
     final videoLinkController = TextEditingController();
     final participantsController = TextEditingController();
 
-    DateTime selectedDate = DateTime.now();
-    TimeOfDay selectedTime = TimeOfDay.now();
+    DateTime selectedDate = prefilledDate ?? DateTime.now();
+    TimeOfDay selectedTime = prefilledHour != null
+        ? TimeOfDay(hour: prefilledHour, minute: 0)
+        : TimeOfDay.now();
     String selectedEventType = 'Dinner';
     int selectedDurationMinutes = 60;
 
@@ -1270,36 +1210,58 @@ class _CalendarScreenState extends State<CalendarScreen> {
               child: Text(AppLocalizations.of(context)!.cancel),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 if (titleController.text.isNotEmpty) {
+                  final user = FirebaseAuth.instance.currentUser;
+                  if (user == null) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please sign in to create events'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+
                   final eventDate = DateTime(
                     selectedDate.year,
                     selectedDate.month,
                     selectedDate.day,
                   );
 
-                  final newEvent = {
-                    'title': titleController.text,
-                    'type': selectedEventType,
-                    'description': descriptionController.text,
-                    'place': placeController.text,
-                    'time': selectedTime.format(context),
-                    'duration': selectedDurationMinutes,
-                    'participants': participantsController.text,
-                    'videoLink': videoLinkController.text,
-                    'category': 'event',
-                  };
+                  // Parse participants
+                  final participantsList = participantsController.text.isEmpty
+                      ? <String>[]
+                      : participantsController.text
+                          .split(',')
+                          .map((e) => e.trim())
+                          .where((e) => e.isNotEmpty)
+                          .toList();
+
+                  final event = EventModel(
+                    id: '',
+                    userId: user.uid,
+                    title: titleController.text,
+                    type: selectedEventType,
+                    description: descriptionController.text,
+                    place: placeController.text,
+                    date: eventDate,
+                    time: selectedTime.format(context),
+                    durationMinutes: selectedDurationMinutes,
+                    participants: participantsList,
+                    videoLink: videoLinkController.text.isEmpty ? null : videoLinkController.text,
+                    createdAt: DateTime.now(),
+                    updatedAt: DateTime.now(),
+                    isPublic: false,
+                    invitedUserIds: [],
+                    category: 'event',
+                  );
 
                   Navigator.pop(context);
 
-                  // Update state in the parent widget
-                  this.setState(() {
-                    if (_events[eventDate] != null) {
-                      _events[eventDate]!.add(newEvent);
-                    } else {
-                      _events[eventDate] = [newEvent];
-                    }
-                  });
+                  // Create event via EventBloc
+                  context.read<EventBloc>().add(CreateEvent(event));
 
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(

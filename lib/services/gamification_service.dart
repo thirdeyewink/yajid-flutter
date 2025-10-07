@@ -189,6 +189,160 @@ class GamificationService {
     }
   }
 
+  /// Get weekly leaderboard (users with points earned in the last 7 days)
+  Future<List<LeaderboardEntry>> getWeeklyLeaderboard({int limit = 100}) async {
+    try {
+      // TODO: Implement actual weekly points tracking when backend supports it
+      final querySnapshot = await _firestore
+          .collection('gamification')
+          .orderBy('totalPoints', descending: true)
+          .limit(limit)
+          .get();
+
+      final entries = <LeaderboardEntry>[];
+      int rank = 1;
+
+      for (var doc in querySnapshot.docs) {
+        final data = doc.data();
+        final userName = data['userName'] as String? ?? 'Unknown';
+        final totalPoints = data['totalPoints'] as int? ?? 0;
+        final level = data['level'] as int? ?? 1;
+        final tierString = data['tier'] as String? ?? 'novice';
+        final tier = ExpertiseTier.values.firstWhere(
+          (t) => t.name == tierString,
+          orElse: () => ExpertiseTier.novice,
+        );
+
+        entries.add(LeaderboardEntry(
+          userId: doc.id,
+          userName: userName,
+          totalPoints: totalPoints,
+          level: level,
+          tier: tier,
+          rank: rank++,
+        ));
+      }
+
+      return entries;
+    } catch (e) {
+      _logger.error('Error getting weekly leaderboard', e);
+      return [];
+    }
+  }
+
+  /// Get monthly leaderboard (users with points earned in the last 30 days)
+  Future<List<LeaderboardEntry>> getMonthlyLeaderboard({int limit = 100}) async {
+    try {
+      // TODO: Implement actual monthly points tracking when backend supports it
+      final querySnapshot = await _firestore
+          .collection('gamification')
+          .orderBy('totalPoints', descending: true)
+          .limit(limit)
+          .get();
+
+      final entries = <LeaderboardEntry>[];
+      int rank = 1;
+
+      for (var doc in querySnapshot.docs) {
+        final data = doc.data();
+        final userName = data['userName'] as String? ?? 'Unknown';
+        final totalPoints = data['totalPoints'] as int? ?? 0;
+        final level = data['level'] as int? ?? 1;
+        final tierString = data['tier'] as String? ?? 'novice';
+        final tier = ExpertiseTier.values.firstWhere(
+          (t) => t.name == tierString,
+          orElse: () => ExpertiseTier.novice,
+        );
+
+        entries.add(LeaderboardEntry(
+          userId: doc.id,
+          userName: userName,
+          totalPoints: totalPoints,
+          level: level,
+          tier: tier,
+          rank: rank++,
+        ));
+      }
+
+      return entries;
+    } catch (e) {
+      _logger.error('Error getting monthly leaderboard', e);
+      return [];
+    }
+  }
+
+  /// Get friends leaderboard (requires friends list implementation)
+  Future<List<LeaderboardEntry>> getFriendsLeaderboard({
+    required String userId,
+    int limit = 100,
+  }) async {
+    try {
+      // First, get user's friends list from their profile
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      final friendIds = (userDoc.data()?['friends'] as List<dynamic>?)
+          ?.cast<String>() ?? [];
+
+      if (friendIds.isEmpty) {
+        return [];
+      }
+
+      // Get gamification data for all friends
+      // Note: Firestore 'in' query limited to 10 items, so we batch if needed
+      final batches = <List<String>>[];
+      for (var i = 0; i < friendIds.length; i += 10) {
+        batches.add(
+          friendIds.sublist(
+            i,
+            i + 10 > friendIds.length ? friendIds.length : i + 10,
+          ),
+        );
+      }
+
+      final allFriendsData = <LeaderboardEntry>[];
+
+      for (var batch in batches) {
+        final querySnapshot = await _firestore
+            .collection('gamification')
+            .where(FieldPath.documentId, whereIn: batch)
+            .get();
+
+        for (var doc in querySnapshot.docs) {
+          final data = doc.data();
+          final userName = data['userName'] as String? ?? 'Unknown';
+          final totalPoints = data['totalPoints'] as int? ?? 0;
+          final level = data['level'] as int? ?? 1;
+          final tierString = data['tier'] as String? ?? 'novice';
+          final tier = ExpertiseTier.values.firstWhere(
+            (t) => t.name == tierString,
+            orElse: () => ExpertiseTier.novice,
+          );
+
+          allFriendsData.add(LeaderboardEntry(
+            userId: doc.id,
+            userName: userName,
+            totalPoints: totalPoints,
+            level: level,
+            tier: tier,
+            rank: 0, // Will be assigned after sorting
+          ));
+        }
+      }
+
+      // Sort by total points and assign ranks
+      allFriendsData.sort((a, b) => b.totalPoints.compareTo(a.totalPoints));
+
+      final rankedData = <LeaderboardEntry>[];
+      for (var i = 0; i < allFriendsData.length && i < limit; i++) {
+        rankedData.add(allFriendsData[i].copyWith(rank: i + 1));
+      }
+
+      return rankedData;
+    } catch (e) {
+      _logger.error('Error getting friends leaderboard', e);
+      return [];
+    }
+  }
+
   /// Get user's rank on leaderboard using Cloud Function
   Future<int?> getUserRank(String userId) async {
     try {

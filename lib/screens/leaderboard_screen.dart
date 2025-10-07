@@ -41,7 +41,21 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         return;
       }
 
-      final entries = await _gamificationService.getLeaderboard(limit: 100);
+      // Get leaderboard based on selected filter
+      List<LeaderboardEntry> entries;
+      switch (_selectedFilter) {
+        case 'weekly':
+          entries = await _gamificationService.getWeeklyLeaderboard(limit: 100);
+          break;
+        case 'monthly':
+          entries = await _gamificationService.getMonthlyLeaderboard(limit: 100);
+          break;
+        case 'friends':
+          entries = await _gamificationService.getFriendsLeaderboard(userId: user.uid, limit: 100);
+          break;
+        default: // 'global'
+          entries = await _gamificationService.getLeaderboard(limit: 100);
+      }
 
       // Find current user's entry
       LeaderboardEntry? currentEntry;
@@ -120,18 +134,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     return Expanded(
       child: InkWell(
         onTap: () {
-          setState(() {
-            _selectedFilter = value;
-          });
-          if (value != 'global') {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Center(child: Text('$label leaderboard coming soon')),
-                backgroundColor: Colors.blue,
-                behavior: SnackBarBehavior.floating,
-                duration: const Duration(seconds: 2),
-              ),
-            );
+          if (_selectedFilter != value) {
+            setState(() {
+              _selectedFilter = value;
+            });
+            _loadLeaderboard();
           }
         },
         child: Container(

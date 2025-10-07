@@ -391,6 +391,28 @@ class LeaderboardEntry extends Equatable {
     };
   }
 
+  LeaderboardEntry copyWith({
+    String? userId,
+    String? userName,
+    String? userAvatarUrl,
+    int? totalPoints,
+    int? level,
+    ExpertiseTier? tier,
+    int? rank,
+    int? previousRank,
+  }) {
+    return LeaderboardEntry(
+      userId: userId ?? this.userId,
+      userName: userName ?? this.userName,
+      userAvatarUrl: userAvatarUrl ?? this.userAvatarUrl,
+      totalPoints: totalPoints ?? this.totalPoints,
+      level: level ?? this.level,
+      tier: tier ?? this.tier,
+      rank: rank ?? this.rank,
+      previousRank: previousRank ?? this.previousRank,
+    );
+  }
+
   @override
   List<Object?> get props => [
         userId,
