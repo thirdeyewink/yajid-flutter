@@ -4,6 +4,7 @@ import 'package:yajid/screens/discover_screen.dart';
 import 'package:yajid/screens/add_content_screen.dart';
 import 'package:yajid/screens/calendar_screen.dart';
 import 'package:yajid/profile_screen.dart';
+import 'package:yajid/settings_screen.dart';
 import 'package:yajid/widgets/shared_bottom_nav.dart';
 
 /// Main navigation screen using IndexedStack to preserve state across tabs
@@ -30,6 +31,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     AddContentScreen(),
     CalendarScreen(),
     ProfileScreen(),
+    SettingsScreen(),
   ];
 
   @override

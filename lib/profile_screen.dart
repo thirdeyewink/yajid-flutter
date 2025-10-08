@@ -6,6 +6,8 @@ import 'package:yajid/services/user_profile_service.dart';
 import 'package:yajid/theme/app_theme.dart';
 import 'package:yajid/screens/gamification_screen.dart';
 import 'package:yajid/screens/edit_profile_screen.dart';
+import 'package:yajid/screens/manage_preferences_screen.dart';
+import 'package:yajid/screens/manage_skills_screen.dart';
 import 'package:yajid/services/logging_service.dart';
 import 'package:yajid/settings_screen.dart';
 import 'package:yajid/services/biometric_auth_service.dart';
@@ -556,6 +558,20 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
                     },
                   ),
                   const Spacer(),
+                  // Friends icon
+                  IconButton(
+                    icon: const Icon(Icons.people_outline, color: Colors.white),
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Center(child: Text('Friends feature coming soon!')),
+                          backgroundColor: Colors.blue,
+                          behavior: SnackBarBehavior.floating,
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                  ),
                   // Edit profile icon
                   IconButton(
                     icon: const Icon(Icons.edit_outlined, color: Colors.white),
@@ -568,16 +584,6 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
                       if (result == true) {
                         _initializeUserData();
                       }
-                    },
-                  ),
-                  // Settings icon
-                  IconButton(
-                    icon: const Icon(Icons.settings_outlined, color: Colors.white),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const SettingsScreen()),
-                      );
                     },
                   ),
                 ],
@@ -976,15 +982,17 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
             ),
             const SizedBox(height: 12),
             TextButton.icon(
-              onPressed: () {
-                // Show coming soon message for edit preferences feature
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Center(child: Text('Edit preferences feature coming soon')),
-                    backgroundColor: Colors.green,
-                    behavior: SnackBarBehavior.floating,
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ManagePreferencesScreen(),
                   ),
                 );
+                // Reload profile if preferences were updated
+                if (result == true) {
+                  _initializeUserData();
+                }
               },
               icon: const Icon(Icons.edit),
               label: const Text('Edit Preferences'),
@@ -1172,12 +1180,33 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Skills',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Skills',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ManageSkillsScreen(),
+                      ),
+                    );
+                    // Reload profile if skills were updated
+                    if (result == true) {
+                      _initializeUserData();
+                    }
+                  },
+                  icon: const Icon(Icons.edit),
+                  label: const Text('Manage All'),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             ..._skills.entries.map((entry) => _buildSkillCategory(entry.key, entry.value)),

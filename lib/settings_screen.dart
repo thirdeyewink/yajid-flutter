@@ -9,6 +9,8 @@ import 'package:yajid/auth_screen.dart';
 import 'package:yajid/screens/admin_seed_screen.dart';
 import 'package:yajid/services/biometric_auth_service.dart';
 import 'package:yajid/services/jailbreak_detection_service.dart';
+import 'package:yajid/services/anti_debugging_service.dart';
+import 'package:yajid/theme/app_theme.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -20,6 +22,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   final BiometricAuthService _biometricService = BiometricAuthService();
   final JailbreakDetectionService _jailbreakService = JailbreakDetectionService();
+  final AntiDebuggingService _antiDebuggingService = AntiDebuggingService();
   bool _isLoggingOut = false;
   bool _isBiometricEnabled = false;
   bool _isBiometricSupported = false;
@@ -30,11 +33,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isLoadingDeviceSecurity = true;
   DeviceSecurityStatus? _deviceSecurityStatus;
 
+  // Anti-debugging state
+  bool _isLoadingDebugStatus = true;
+  DebugStatus? _debugStatus;
+
   @override
   void initState() {
     super.initState();
     _loadBiometricInfo();
     _loadDeviceSecurityInfo();
+    _loadDebugStatus();
   }
 
   Future<void> _loadBiometricInfo() async {
@@ -66,6 +74,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         setState(() {
           _isLoadingDeviceSecurity = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadDebugStatus() async {
+    try {
+      final status = await _antiDebuggingService.checkDebugStatus();
+
+      if (mounted) {
+        setState(() {
+          _debugStatus = status;
+          _isLoadingDebugStatus = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingDebugStatus = false;
         });
       }
     }
@@ -284,6 +311,163 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  void _showDebugStatusDetails() {
+    if (_debugStatus == null) {
+      return;
+    }
+
+    final status = _debugStatus!;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(
+              status.isDebugged
+                  ? Icons.warning_amber_rounded
+                  : Icons.shield_outlined,
+              color: status.isDebugged ? Colors.orange : Colors.green,
+              size: 28,
+            ),
+            const SizedBox(width: 12),
+            const Text('Debug Protection'),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Status
+              Text(
+                'Status: ${status.type.name}',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: status.isDebugged ? Colors.orange : Colors.green,
+                    ),
+              ),
+              const SizedBox(height: 16),
+
+              // Message
+              Text(
+                status.message,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 16),
+
+              // Recommendation
+              if (status.recommendation.isNotEmpty) ...[
+                const Divider(),
+                const SizedBox(height: 8),
+                Text(
+                  'Recommendation',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  status.recommendation,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 16),
+              ],
+
+              // Security implications
+              const Divider(),
+              const SizedBox(height: 8),
+              Text(
+                'Security Implications',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: status.isDebugged
+                      ? Theme.of(context).colorScheme.errorContainer.withOpacity(0.3)
+                      : Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          status.isDebuggerAttached ? Icons.block : Icons.check_circle,
+                          size: 16,
+                          color: status.isDebuggerAttached ? Colors.red : Colors.green,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            status.isDebuggerAttached
+                                ? 'Debugger is attached'
+                                : 'No debugger detected',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(
+                          status.isAppTampered ? Icons.block : Icons.check_circle,
+                          size: 16,
+                          color: status.isAppTampered ? Colors.red : Colors.green,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            status.isAppTampered
+                                ? 'App tampering detected'
+                                : 'App integrity intact',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(
+                          status.isRunningOnEmulator ? Icons.info : Icons.check_circle,
+                          size: 16,
+                          color: status.isRunningOnEmulator ? Colors.orange : Colors.green,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            status.isRunningOnEmulator
+                                ? 'Running on emulator/simulator'
+                                : 'Running on physical device',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showLanguageDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -337,20 +521,34 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Text(
-          AppLocalizations.of(context)!.settings,
-          style: const TextStyle(color: Colors.white),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.white),
-            onPressed: () {
-              Navigator.pop(context);
-            },
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.black,
+          elevation: 1,
+          flexibleSpace: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  AppTheme.buildLogo(size: 55.0),
+                  const Spacer(),
+                  Text(
+                    AppLocalizations.of(context)!.settings,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const Spacer(),
+                ],
+              ),
+            ),
           ),
-        ],
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -460,6 +658,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                       onTap: () => _showDeviceSecurityDetails(),
+                    ),
+            ),
+            const SizedBox(height: 8),
+
+            // Anti-Debugging Status
+            Card(
+              child: _isLoadingDebugStatus
+                  ? const ListTile(
+                      leading: Icon(Icons.bug_report),
+                      title: Text('Debug Protection'),
+                      trailing: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : ListTile(
+                      leading: Icon(
+                        _debugStatus?.isDebugged == true
+                            ? Icons.warning_amber_rounded
+                            : Icons.shield_outlined,
+                        color: _debugStatus?.isDebugged == true
+                            ? Colors.orange
+                            : Colors.green,
+                        size: 28,
+                      ),
+                      title: const Text('Debug Protection'),
+                      subtitle: Text(
+                        _debugStatus?.message ?? 'Unable to check debug status',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                      onTap: () => _showDebugStatusDetails(),
                     ),
             ),
             const SizedBox(height: 16),

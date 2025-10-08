@@ -238,84 +238,81 @@ class _HomeScreenState extends State<HomeScreen> {
           elevation: 1,
           flexibleSpace: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              padding: const EdgeInsets.only(right: 8.0),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   // Left section: Logo
                   AppTheme.buildLogo(size: 55.0),
 
-                  // Center section: Gamification points display (centered, shifted 30px right)
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 30.0),
-                      child: Center(
-                        child: BlocBuilder<GamificationBloc, GamificationState>(
-                        bloc: _gamificationBloc,
-                        buildWhen: (previous, current) {
-                          // Rebuild whenever state changes to GamificationLoaded
-                          return current is GamificationLoaded || current is GamificationLoading;
-                        },
-                        builder: (context, state) {
-                          if (state is GamificationLoaded) {
-                            return PointsDisplayWidget(
-                              userPoints: state.userPoints,
-                              userLevel: state.userLevel,
-                              compact: true,
-                            );
-                          }
-                          if (state is GamificationLoading) {
-                            return const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                            );
-                          }
-                          // Default/fallback display
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.transparent,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.yellow, width: 1),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.stars, color: Colors.yellow, size: 16),
-                                const SizedBox(width: 4),
-                                const Text(
-                                  '000',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.yellow,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: const Text(
-                                    'Lv 1',
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
+                  const Spacer(),
+
+                  // Gamification points display
+                  BlocBuilder<GamificationBloc, GamificationState>(
+                    bloc: _gamificationBloc,
+                    buildWhen: (previous, current) {
+                      // Rebuild whenever state changes to GamificationLoaded
+                      return current is GamificationLoaded || current is GamificationLoading;
+                    },
+                    builder: (context, state) {
+                      if (state is GamificationLoaded) {
+                        return PointsDisplayWidget(
+                          userPoints: state.userPoints,
+                          userLevel: state.userLevel,
+                          compact: true,
+                        );
+                      }
+                      if (state is GamificationLoading) {
+                        return const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        );
+                      }
+                      // Default/fallback display
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.yellow, width: 1),
                         ),
-                      ),
-                    ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.stars, color: Colors.yellow, size: 16),
+                            const SizedBox(width: 4),
+                            const Text(
+                              '000',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.yellow,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Text(
+                                'Lv 1',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                   ),
+
+                  const Spacer(),
 
                   // Right section: Notifications and Inbox icons
                   IconButton(
@@ -353,11 +350,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     // Top section with For You and user name
                     Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                    const SizedBox(height: 20),
                     // Hi User greeting with filter and refresh
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -600,7 +596,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildRecommendationCard(Recommendation recommendation, int index) {
     final categoryColor = _getCategoryColor(recommendation.category);
-    final isExpanded = _expandedStates[recommendation.id] ?? false;
+    final isExpanded = _expandedStates[recommendation.id] ?? true;
     final userRating = _userRatings[recommendation.id] ?? 0.0;
     final isBookmarked = _bookmarkedStates[recommendation.id] ?? false;
 
@@ -827,7 +823,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _userRatings[recommendationId] = rating;
     });
 
-    // Save rating to Firestore and remove from home screen
+    // Save rating to Firestore
     try {
       await FirebaseFirestore.instance
           .collection('users')
@@ -856,14 +852,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ));
 
       _showPointsEarnedSnackbar(20, 'Rating');
-
-      // Remove from home screen
-      setState(() {
-        _recommendations.removeWhere((rec) => rec.id == recommendationId);
-        _userRatings.remove(recommendationId);
-        _expandedStates.remove(recommendationId);
-        _bookmarkedStates.remove(recommendationId);
-      });
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -898,7 +886,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _bookmarkedStates[recommendation.id] = true;
     });
 
-    // Save bookmark to Firestore and remove from home screen
+    // Save bookmark to Firestore
     try {
       await FirebaseFirestore.instance
           .collection('users')
@@ -914,14 +902,6 @@ class _HomeScreenState extends State<HomeScreen> {
         'communityRating': recommendation.communityRating,
         'imageUrl': recommendation.imageUrl ?? '',
         'bookmarkedAt': FieldValue.serverTimestamp(),
-      });
-
-      // Remove from home screen
-      setState(() {
-        _recommendations.removeAt(index);
-        _userRatings.remove(recommendation.id);
-        _expandedStates.remove(recommendation.id);
-        _bookmarkedStates.remove(recommendation.id);
       });
 
       // Award points for bookmarking

@@ -28,6 +28,7 @@ import 'package:yajid/services/event_service.dart';
 
 // Security
 import 'package:yajid/services/jailbreak_detection_service.dart';
+import 'package:yajid/services/anti_debugging_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -111,6 +112,7 @@ class AuthWrapper extends StatefulWidget {
 
 class _AuthWrapperState extends State<AuthWrapper> {
   final _jailbreakService = JailbreakDetectionService();
+  final _antiDebuggingService = AntiDebuggingService();
   bool _securityCheckCompleted = false;
 
   @override
@@ -121,13 +123,17 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   Future<void> _performSecurityCheck() async {
     try {
-      final status = await _jailbreakService.checkDeviceSecurity();
+      // Check both jailbreak/root and debugging status
+      final jailbreakStatus = await _jailbreakService.checkDeviceSecurity();
+      final debugStatus = await _antiDebuggingService.checkDebugStatus();
 
-      if (mounted && status.isCompromised) {
+      final hasSecurityIssue = jailbreakStatus.isCompromised || debugStatus.isDebugged;
+
+      if (mounted && hasSecurityIssue) {
         // Show security warning dialog
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted && !_securityCheckCompleted) {
-            _showSecurityWarningDialog(status);
+            _showSecurityWarningDialog(jailbreakStatus, debugStatus);
             _securityCheckCompleted = true;
           }
         });
@@ -140,7 +146,38 @@ class _AuthWrapperState extends State<AuthWrapper> {
     }
   }
 
-  void _showSecurityWarningDialog(DeviceSecurityStatus status) {
+  void _showSecurityWarningDialog(
+    DeviceSecurityStatus jailbreakStatus,
+    DebugStatus debugStatus,
+  ) {
+    // Combine security issues into a single message
+    final issues = <String>[];
+
+    if (jailbreakStatus.isCompromised) {
+      issues.add(jailbreakStatus.message);
+    }
+
+    if (debugStatus.isDebugged) {
+      issues.add(debugStatus.message);
+    }
+
+    final combinedMessage = issues.join('\n\n');
+    final hasRecommendation = jailbreakStatus.recommendation.isNotEmpty ||
+        debugStatus.recommendation.isNotEmpty;
+
+    final recommendation = [
+      if (jailbreakStatus.recommendation.isNotEmpty) jailbreakStatus.recommendation,
+      if (debugStatus.recommendation.isNotEmpty) debugStatus.recommendation,
+    ].join(' ');
+
+    _showSecurityDialog(combinedMessage, recommendation, hasRecommendation);
+  }
+
+  void _showSecurityDialog(
+    String message,
+    String recommendation,
+    bool hasRecommendation,
+  ) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -161,13 +198,13 @@ class _AuthWrapperState extends State<AuthWrapper> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              status.message,
+              message,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 16),
-            if (status.recommendation.isNotEmpty)
+            if (hasRecommendation)
               Text(
-                status.recommendation,
+                recommendation,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),

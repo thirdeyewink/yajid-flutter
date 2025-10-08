@@ -58,6 +58,10 @@ class SharedBottomNav extends StatelessWidget {
           icon: const Icon(Icons.person),
           label: AppLocalizations.of(context)!.profile,
         ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.settings),
+          label: AppLocalizations.of(context)!.settings,
+        ),
       ],
     );
   }
