@@ -63,7 +63,9 @@
       "Bash(firebase emulators:exec:*)",
       "Bash(java:*)",
       "Bash(firebase setup:emulators:firestore:*)",
-      "Bash(firebase setup:emulators:auth:*)"
+      "Bash(firebase setup:emulators:auth:*)",
+      "Bash(else echo \"No coverage file\")",
+      "Bash(timeout 30 flutter build apk --debug)"
     ],
     "deny": [],
     "ask": []
