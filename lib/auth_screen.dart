@@ -233,8 +233,8 @@ class _AuthScreenState extends State<AuthScreen> with AutomaticKeepAliveClientMi
               color: Colors.black,
             ),
             title: Center(
-              child: SvgPicture.asset(
-                'assets/images/logo.svg',
+              child: Image.asset(
+                'assets/images/light_yajid_icon.png',
                 height: 48,
                 width: 48,
                 fit: BoxFit.contain,
