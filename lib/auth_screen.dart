@@ -232,6 +232,14 @@ class _AuthScreenState extends State<AuthScreen> with AutomaticKeepAliveClientMi
             iconTheme: const IconThemeData(
               color: Colors.black,
             ),
+            title: Center(
+              child: SvgPicture.asset(
+                'assets/images/logo.svg',
+                height: 48,
+                width: 48,
+                fit: BoxFit.contain,
+              ),
+            ),
             actions: [
               IconButton(
                 icon: const Icon(
@@ -244,26 +252,16 @@ class _AuthScreenState extends State<AuthScreen> with AutomaticKeepAliveClientMi
           ),
           body: Stack(
             children: [
-              Center(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Logo above the card
-              Padding(
-                padding: const EdgeInsets.only(bottom: 22.0),
-                child: SvgPicture.asset(
-                  'assets/images/logo.svg',
-                  height: 160,
-                  width: 160,
-                  fit: BoxFit.contain,
-                ),
-              ),
-              SlideTransition(
-                position: _slideAnimation,
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: Card(
+              SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 20.0),
+                  child: Column(
+                    children: [
+                      SlideTransition(
+                        position: _slideAnimation,
+                        child: FadeTransition(
+                          opacity: _fadeAnimation,
+                          child: Card(
                     elevation: 8,
                     color: Theme.of(context).scaffoldBackgroundColor,
                     shape: RoundedRectangleBorder(
@@ -1199,14 +1197,14 @@ class _AuthScreenState extends State<AuthScreen> with AutomaticKeepAliveClientMi
                       ),
                     ),
                   ),
-                    ),
-                  ),
                 ),
               ),
-            ],
+            ),
           ),
-        ),
-              ),
+        ],
+      ),
+    ),
+  ),
               if (isLoading)
                 Container(
                   color: Colors.black.withValues(alpha: 0.3),
