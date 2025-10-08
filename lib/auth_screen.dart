@@ -234,9 +234,8 @@ class _AuthScreenState extends State<AuthScreen> with AutomaticKeepAliveClientMi
             ),
             title: Center(
               child: Image.asset(
-                'assets/images/light_yajid_icon.png',
+                'assets/images/light_yagid_logo.png',
                 height: 48,
-                width: 48,
                 fit: BoxFit.contain,
               ),
             ),
