@@ -67,7 +67,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 6, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     _initializeUserData();
   }
 
@@ -128,6 +128,92 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
     });
   }
 
+  Future<void> _updateRating(String ratedItemId, String title, int newRating) async {
+    if (user == null) return;
+
+    try {
+      // Update in Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user!.uid)
+          .collection('rated')
+          .doc(ratedItemId)
+          .update({
+        'userRating': newRating.toDouble(),
+        'ratedAt': FieldValue.serverTimestamp(),
+      });
+
+      // Update local state
+      if (mounted) {
+        setState(() {
+          final index = _ratedItems.indexWhere((item) => item['id'] == ratedItemId);
+          if (index != -1) {
+            _ratedItems[index]['myRating'] = newRating;
+          }
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Center(child: Text(AppLocalizations.of(context)!.updatedRatingFor(title))),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      logger.error('Error updating rating', e);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Center(child: Text(AppLocalizations.of(context)!.failedToUpdateRating)),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _removeBookmark(String bookmarkId, String title) async {
+    if (user == null) return;
+
+    try {
+      // Delete from Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user!.uid)
+          .collection('bookmarks')
+          .doc(bookmarkId)
+          .delete();
+
+      // Update local state
+      if (mounted) {
+        setState(() {
+          _bookmarks.removeWhere((bookmark) => bookmark['id'] == bookmarkId);
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Center(child: Text('Removed "$title" from bookmarks')),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      logger.error('Error removing bookmark', e);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Center(child: Text('Failed to remove bookmark')),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _loadBookmarksAndRatings() async {
     if (user == null) return;
 
@@ -153,6 +239,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
           _bookmarks = bookmarksSnapshot.docs.map((doc) {
             final data = doc.data();
             return {
+              'id': doc.id,  // Include document ID for deletion
               'title': data['title'] ?? '',
               'category': data['category'] ?? '',
               'rating': data['communityRating'] ?? 0.0,
@@ -164,6 +251,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
           _ratedItems = ratedSnapshot.docs.map((doc) {
             final data = doc.data();
             return {
+              'id': doc.id,  // Include document ID for updates
               'title': data['title'] ?? '',
               'category': data['category'] ?? '',
               'rating': data['communityRating'] ?? 0.0,
@@ -572,20 +660,6 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
                       );
                     },
                   ),
-                  // Edit profile icon
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined, color: Colors.white),
-                    onPressed: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const EditProfileScreen()),
-                      );
-                      // Reload profile if it was updated
-                      if (result == true) {
-                        _initializeUserData();
-                      }
-                    },
-                  ),
                 ],
               ),
             ),
@@ -616,13 +690,12 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
                   indicatorColor: Colors.blue,
                   isScrollable: true,
                   tabAlignment: TabAlignment.start,
-                  tabs: const [
-                    Tab(text: 'Friends'),
-                    Tab(text: 'Info'),
-                    Tab(text: 'Preferences'),
-                    Tab(text: 'Skills'),
-                    Tab(text: 'Rated'),
-                    Tab(text: 'Bookmarks'),
+                  tabs: [
+                    Tab(text: AppLocalizations.of(context)!.personalInformation),
+                    Tab(text: AppLocalizations.of(context)!.preferences),
+                    Tab(text: AppLocalizations.of(context)!.skills),
+                    Tab(text: AppLocalizations.of(context)!.rated),
+                    Tab(text: AppLocalizations.of(context)!.bookmarks),
                   ],
                 ),
 
@@ -631,7 +704,6 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      _buildFriendsTab(),
                       _buildInfoTab(),
                       _buildPreferencesTab(),
                       _buildSkillsTab(),
@@ -732,9 +804,9 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Personal Information',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.personalInformation,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -742,9 +814,9 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
             const SizedBox(height: 16),
             _buildEditableInfoTile(
               Icons.person,
-              'Name',
-              _displayName.isNotEmpty ? _displayName : 'Not set',
-              () => _showEditDialog('Name', _displayName, (value) async {
+              AppLocalizations.of(context)!.name,
+              _displayName.isNotEmpty ? _displayName : AppLocalizations.of(context)!.notSet,
+              () => _showEditDialog(AppLocalizations.of(context)!.name, _displayName, (value) async {
                 // Update local state
                 setState(() {
                   _displayName = value;
@@ -774,9 +846,9 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
             ),
             _buildEditableInfoTile(
               Icons.email,
-              'Email',
-              _email.isNotEmpty ? _email : 'Not set',
-              () => _showEditDialog('Email', _email, (value) async {
+              AppLocalizations.of(context)!.email,
+              _email.isNotEmpty ? _email : AppLocalizations.of(context)!.notSet,
+              () => _showEditDialog(AppLocalizations.of(context)!.email, _email, (value) async {
                 // Update local state
                 setState(() {
                   _email = value;
@@ -806,9 +878,9 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
             ),
             _buildEditableInfoTile(
               Icons.phone,
-              'Phone',
-              _phoneNumber.isNotEmpty ? _phoneNumber : 'Not set',
-              () => _showEditDialog('Phone', _phoneNumber, (value) async {
+              AppLocalizations.of(context)!.phone,
+              _phoneNumber.isNotEmpty ? _phoneNumber : AppLocalizations.of(context)!.notSet,
+              () => _showEditDialog(AppLocalizations.of(context)!.phone, _phoneNumber, (value) async {
                 // Update local state
                 setState(() {
                   _phoneNumber = value;
@@ -838,9 +910,24 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
             ),
             _buildEditableInfoTile(
               Icons.cake,
-              'Birthday',
+              AppLocalizations.of(context)!.birthday,
               _birthday,
               _showDatePicker,
+            ),
+            _buildEditableInfoTile(
+              Icons.translate,
+              AppLocalizations.of(context)!.multiLanguageDisplayNames,
+              AppLocalizations.of(context)!.tapToManage,
+              () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+                );
+                // Reload profile if it was updated
+                if (result == true) {
+                  _initializeUserData();
+                }
+              },
             ),
           ],
         ),
@@ -958,45 +1045,74 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Recommendation Preferences',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  AppLocalizations.of(context)!.recommendationPreferences,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ManagePreferencesScreen(),
+                      ),
+                    );
+                    // Reload profile if preferences were updated
+                    if (result == true) {
+                      _initializeUserData();
+                    }
+                  },
+                  icon: const Icon(Icons.edit, size: 18),
+                  label: Text(AppLocalizations.of(context)!.edit),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
-            Wrap(
-              spacing: 8.0,
-              runSpacing: 8.0,
-              children: _selectedCategories.map((category) {
-                return Chip(
-                  label: Text(_getLocalizedCategoryName(category)),
-                  backgroundColor: Colors.blue.shade100,
-                  labelStyle: const TextStyle(
-                    color: Colors.blue,
-                    fontWeight: FontWeight.w500,
+            if (_selectedCategories.isEmpty)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      Icon(Icons.category_outlined, size: 48, color: Colors.grey.shade400),
+                      const SizedBox(height: 8),
+                      Text(
+                        AppLocalizations.of(context)!.noPreferencesSelected,
+                        style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        AppLocalizations.of(context)!.tapEditToSelectInterests,
+                        style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                      ),
+                    ],
                   ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 12),
-            TextButton.icon(
-              onPressed: () async {
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ManagePreferencesScreen(),
-                  ),
-                );
-                // Reload profile if preferences were updated
-                if (result == true) {
-                  _initializeUserData();
-                }
-              },
-              icon: const Icon(Icons.edit),
-              label: const Text('Edit Preferences'),
-            ),
+                ),
+              )
+            else
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 8.0,
+                children: _selectedCategories.map((category) {
+                  return Chip(
+                    label: Text(_getLocalizedCategoryName(category)),
+                    backgroundColor: Colors.blue.shade100,
+                    labelStyle: const TextStyle(
+                      color: Colors.blue,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  );
+                }).toList(),
+              ),
           ],
         ),
       ),
@@ -1081,9 +1197,7 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
           ),
           IconButton(
             icon: const Icon(Icons.bookmark, color: Colors.blue),
-            onPressed: () {
-              // Bookmark removal feature - to be implemented
-            },
+            onPressed: () => _removeBookmark(bookmark['id'], bookmark['title']),
           ),
         ],
       ),
@@ -1097,19 +1211,19 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Rated',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.rated,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 16),
             if (_ratedItems.isEmpty)
-              const Center(
+              Center(
                 child: Text(
-                  'No ratings yet',
-                  style: TextStyle(color: Colors.grey),
+                  AppLocalizations.of(context)!.noRatingsYet,
+                  style: const TextStyle(color: Colors.grey),
                 ),
               )
             else
@@ -1155,12 +1269,20 @@ class _ProfileScreenState extends State<ProfileScreen> with TickerProviderStateM
                 ),
                 Row(
                   children: [
-                    const Text('My Rating: ', style: TextStyle(fontSize: 12)),
+                    Text(AppLocalizations.of(context)!.myRating, style: const TextStyle(fontSize: 12)),
                     ...List.generate(5, (index) {
-                      return Icon(
-                        index < item['myRating'] ? Icons.star : Icons.star_border,
-                        size: 16,
-                        color: Colors.amber,
+                      final starRating = index + 1;
+                      return InkWell(
+                        onTap: () => _updateRating(item['id'], item['title'], starRating),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.all(2.0),
+                          child: Icon(
+                            index < item['myRating'] ? Icons.star : Icons.star_border,
+                            size: 20,
+                            color: Colors.amber,
+                          ),
+                        ),
                       );
                     }),
                   ],

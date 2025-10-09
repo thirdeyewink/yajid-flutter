@@ -343,94 +343,86 @@ class _HomeScreenState extends State<HomeScreen> {
           ? const Center(
               child: CircularProgressIndicator(),
             )
-          : Stack(
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Top section with For You and user name
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                // Top section with For You and user name
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Hi User greeting with filter and refresh
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                    // Hi User greeting with filter and refresh
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          AppLocalizations.of(context)!.hiUser(_userName),
-                          style: const TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
+                          Text(
+                            AppLocalizations.of(context)!.hiUser(_userName),
+                            style: const TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            PopupMenuButton<String>(
-                              icon: const Icon(Icons.filter_list, size: 28),
-                              onSelected: (String value) {
-                                setState(() {
-                                  _selectedCategory = value;
-                                });
-                              },
-                              itemBuilder: (BuildContext context) {
-                                return _userCategories.map<PopupMenuItem<String>>((String category) {
-                                  return PopupMenuItem<String>(
-                                    value: category,
-                                    child: Row(
-                                      children: [
-                                        if (category == _selectedCategory)
-                                          const Icon(Icons.check, size: 16, color: Colors.blue),
-                                        if (category == _selectedCategory)
-                                          const SizedBox(width: 8),
-                                        Text(_getLocalizedCategoryName(category)),
-                                      ],
-                                    ),
-                                  );
-                                }).toList();
-                              },
-                            ),
-                            IconButton(
-                              icon: _isLoadingRecommendations
-                                  ? const SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
-                                    )
-                                  : const Icon(Icons.refresh, size: 28),
-                              onPressed: _isLoadingRecommendations ? null : _generateRecommendations,
-                              tooltip: 'Refresh recommendations',
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    // "We think you might like" text
-                    Text(
-                      AppLocalizations.of(context)!.youMightLike,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w500,
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              PopupMenuButton<String>(
+                                icon: const Icon(Icons.filter_list, size: 28),
+                                onSelected: (String value) {
+                                  setState(() {
+                                    _selectedCategory = value;
+                                  });
+                                },
+                                itemBuilder: (BuildContext context) {
+                                  return _userCategories.map<PopupMenuItem<String>>((String category) {
+                                    return PopupMenuItem<String>(
+                                      value: category,
+                                      child: Row(
+                                        children: [
+                                          if (category == _selectedCategory)
+                                            const Icon(Icons.check, size: 16, color: Colors.blue),
+                                          if (category == _selectedCategory)
+                                            const SizedBox(width: 8),
+                                          Text(_getLocalizedCategoryName(category)),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList();
+                                },
+                              ),
+                              IconButton(
+                                icon: _isLoadingRecommendations
+                                    ? const SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                      )
+                                    : const Icon(Icons.refresh, size: 28),
+                                onPressed: _isLoadingRecommendations ? null : _generateRecommendations,
+                                tooltip: 'Refresh recommendations',
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      // "We think you might like" text
+                      Text(
+                        AppLocalizations.of(context)!.youMightLike,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-
-
-              const SizedBox(height: 16),
-
-              // Recommendations carousel with loading and error states
-              Expanded(
-                child: _buildRecommendationsView(),
-              ),
-            ],
-          ),
-
+                const SizedBox(height: 16),
+                // Recommendations carousel with loading and error states
+                Expanded(
+                  child: _buildRecommendationsView(),
+                ),
               ],
             ),
     );
@@ -524,7 +516,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   String _getLocalizedCategoryName(String category) {
-    switch (category) {
+    final lowerCategory = category.toLowerCase();
+    switch (lowerCategory) {
       case 'all':
         return 'All';
       case 'movies':
@@ -551,8 +544,48 @@ class _HomeScreenState extends State<HomeScreen> {
         return AppLocalizations.of(context)!.activities;
       case 'businesses':
         return AppLocalizations.of(context)!.businesses;
+      case 'restaurants':
+        return AppLocalizations.of(context)!.restaurants;
+      case 'bars':
+        return AppLocalizations.of(context)!.bars;
+      case 'clubs':
+        return AppLocalizations.of(context)!.clubs;
+      case 'coffee shops':
+        return AppLocalizations.of(context)!.coffeeShops;
+      case 'shops':
+        return AppLocalizations.of(context)!.shops;
+      case 'services':
+        return AppLocalizations.of(context)!.services;
+      case 'people':
+        return AppLocalizations.of(context)!.people;
+      case 'friendships':
+        return AppLocalizations.of(context)!.friendships;
+      case 'experiences':
+        return AppLocalizations.of(context)!.experiences;
+      case 'dating':
+        return AppLocalizations.of(context)!.dating;
+      case 'trips':
+        return AppLocalizations.of(context)!.trips;
+      case 'sight seeing':
+        return AppLocalizations.of(context)!.sightSeeing;
+      case 'documentary':
+        return AppLocalizations.of(context)!.documentary;
+      case 'stand up comedy':
+        return AppLocalizations.of(context)!.standUpComedy;
+      case 'anime':
+        return AppLocalizations.of(context)!.anime;
+      case 'manga':
+        return AppLocalizations.of(context)!.manga;
+      case 'cartoons':
+        return AppLocalizations.of(context)!.cartoons;
       default:
-        return category;
+        // Capitalize first letter of each word for unrecognized categories
+        return category
+            .split(' ')
+            .map((word) => word.isEmpty
+                ? ''
+                : word[0].toUpperCase() + word.substring(1).toLowerCase())
+            .join(' ');
     }
   }
 
@@ -733,7 +766,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         isBookmarked ? Icons.bookmark : Icons.bookmark_border,
                       ),
                       label: Text(
-                        isBookmarked ? 'Remove from Bookmarks' : 'Add to Bookmarks',
+                        isBookmarked ? AppLocalizations.of(context)!.removeFromSaved : AppLocalizations.of(context)!.addToSaved,
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isBookmarked ? Colors.orange : Colors.black,

@@ -123,6 +123,12 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
   Future<void> _performSecurityCheck() async {
     try {
+      // Skip security checks in debug mode (development only)
+      if (kDebugMode) {
+        _securityCheckCompleted = true;
+        return;
+      }
+
       // Check both jailbreak/root and debugging status
       final jailbreakStatus = await _jailbreakService.checkDeviceSecurity();
       final debugStatus = await _antiDebuggingService.checkDebugStatus();
@@ -253,7 +259,10 @@ class _AuthWrapperState extends State<AuthWrapper> {
   Widget build(BuildContext context) {
     return BlocBuilder<AuthBloc, AuthState>(
       builder: (context, state) {
+        print('AuthWrapper: Current auth state: ${state.runtimeType}');
+
         if (state is AuthInitial || state is AuthLoading) {
+          print('AuthWrapper: Showing loading screen');
           return const Scaffold(
             body: Center(
               child: CircularProgressIndicator(),
@@ -262,27 +271,90 @@ class _AuthWrapperState extends State<AuthWrapper> {
         }
 
         if (state is AuthAuthenticated) {
-          // User is authenticated, check onboarding status
-          return Consumer<OnboardingProvider>(
-            builder: (context, onboardingProvider, child) {
-              if (onboardingProvider.isLoading) {
-                return const Scaffold(
-                  body: Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              }
+          print('AuthWrapper: User authenticated, userId: ${state.user.uid}');
+          return OnboardingWrapper(userId: state.user.uid);
+        }
 
-              if (!onboardingProvider.isOnboardingCompleted) {
-                return const OnboardingScreen();
-              }
+        if (state is AuthError) {
+          print('AuthWrapper: Auth error: ${state.message}');
+        }
 
-              return const MainNavigationScreen();
-            },
+        // User is unauthenticated, clear onboarding provider after build
+        print('AuthWrapper: User unauthenticated, showing auth screen');
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final onboardingProvider = Provider.of<OnboardingProvider>(context, listen: false);
+          onboardingProvider.clearUser();
+        });
+
+        return const AuthScreen();
+      },
+    );
+  }
+}
+
+class OnboardingWrapper extends StatefulWidget {
+  final String userId;
+
+  const OnboardingWrapper({super.key, required this.userId});
+
+  @override
+  State<OnboardingWrapper> createState() => _OnboardingWrapperState();
+}
+
+class _OnboardingWrapperState extends State<OnboardingWrapper> {
+  bool _hasLoadedOnboarding = false;
+
+  @override
+  void initState() {
+    super.initState();
+    print('OnboardingWrapper: initState for userId: ${widget.userId}');
+    // Load onboarding status after the first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_hasLoadedOnboarding) {
+        print('OnboardingWrapper: Loading onboarding status in postFrameCallback');
+        final onboardingProvider = Provider.of<OnboardingProvider>(context, listen: false);
+        onboardingProvider.loadOnboardingStatus(widget.userId);
+        _hasLoadedOnboarding = true;
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(OnboardingWrapper oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    print('OnboardingWrapper: didUpdateWidget, old: ${oldWidget.userId}, new: ${widget.userId}');
+    // If user changed, reload onboarding status
+    if (oldWidget.userId != widget.userId) {
+      print('OnboardingWrapper: User changed, reloading onboarding status');
+      _hasLoadedOnboarding = false;
+      final onboardingProvider = Provider.of<OnboardingProvider>(context, listen: false);
+      onboardingProvider.loadOnboardingStatus(widget.userId);
+      _hasLoadedOnboarding = true;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<OnboardingProvider>(
+      builder: (context, onboardingProvider, child) {
+        print('OnboardingWrapper: Building, isLoading: ${onboardingProvider.isLoading}, isCompleted: ${onboardingProvider.isOnboardingCompleted}');
+
+        if (onboardingProvider.isLoading) {
+          print('OnboardingWrapper: Showing loading screen');
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
           );
         }
 
-        return const AuthScreen();
+        if (!onboardingProvider.isOnboardingCompleted) {
+          print('OnboardingWrapper: Showing onboarding screen');
+          return const OnboardingScreen();
+        }
+
+        print('OnboardingWrapper: Showing main navigation screen');
+        return const MainNavigationScreen();
       },
     );
   }

@@ -192,7 +192,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               size: 28,
             ),
             const SizedBox(width: 12),
-            const Text('Device Security'),
+            Text(AppLocalizations.of(context)!.deviceSecurity),
           ],
         ),
         content: SingleChildScrollView(
@@ -239,7 +239,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const Divider(),
               const SizedBox(height: 8),
               Text(
-                'Security Implications',
+                AppLocalizations.of(context)!.securityImplications,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -377,7 +377,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const Divider(),
               const SizedBox(height: 8),
               Text(
-                'Security Implications',
+                AppLocalizations.of(context)!.securityImplications,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -588,9 +588,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 16),
 
             // Security Section
-            const Text(
-              'Security',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context)!.security,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -631,10 +631,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // Device Security Status
             Card(
               child: _isLoadingDeviceSecurity
-                  ? const ListTile(
-                      leading: Icon(Icons.security),
-                      title: Text('Device Security'),
-                      trailing: SizedBox(
+                  ? ListTile(
+                      leading: const Icon(Icons.security),
+                      title: Text(AppLocalizations.of(context)!.deviceSecurity),
+                      trailing: const SizedBox(
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
@@ -650,9 +650,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             : Colors.green,
                         size: 28,
                       ),
-                      title: const Text('Device Security'),
+                      title: Text(AppLocalizations.of(context)!.deviceSecurity),
                       subtitle: Text(
-                        _deviceSecurityStatus?.message ?? 'Unable to check device security',
+                        _deviceSecurityStatus?.message ?? AppLocalizations.of(context)!.unableToCheckDeviceSecurity,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -697,8 +697,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 16),
 
             // Developer Section
-            const Text(
-              'Developer',
+            Text(
+              AppLocalizations.of(context)!.developer,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -724,8 +724,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 16),
 
             // Account Section
-            const Text(
-              'Account',
+            Text(
+              AppLocalizations.of(context)!.account,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,

@@ -27,6 +27,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   final List<String> _viewTypes = ['Month', 'Week', 'Agenda'];
 
+  String _getLocalizedViewName(String view) {
+    switch (view) {
+      case 'Month':
+        return AppLocalizations.of(context)!.month;
+      case 'Week':
+        return AppLocalizations.of(context)!.week;
+      case 'Agenda':
+        return AppLocalizations.of(context)!.agenda;
+      default:
+        return view;
+    }
+  }
+
   // Sample calendar events
   final Map<DateTime, List<Map<String, dynamic>>> _events = {
     DateTime(2025, 1, 15): [
@@ -290,7 +303,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                     size: 20,
                                   ),
                                   const SizedBox(width: 8),
-                                  Text(view),
+                                  Text(_getLocalizedViewName(view)),
                                 ],
                               ),
                             ))
@@ -1282,9 +1295,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   String _getMonthName(int month) {
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+    final months = [
+      AppLocalizations.of(context)!.january,
+      AppLocalizations.of(context)!.february,
+      AppLocalizations.of(context)!.march,
+      AppLocalizations.of(context)!.april,
+      AppLocalizations.of(context)!.may,
+      AppLocalizations.of(context)!.june,
+      AppLocalizations.of(context)!.july,
+      AppLocalizations.of(context)!.august,
+      AppLocalizations.of(context)!.september,
+      AppLocalizations.of(context)!.october,
+      AppLocalizations.of(context)!.november,
+      AppLocalizations.of(context)!.december,
     ];
     return months[month - 1];
   }

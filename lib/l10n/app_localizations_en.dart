@@ -54,9 +54,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get female => 'Female';
 
   @override
-  String get other => 'Other';
-
-  @override
   String get birthday => 'Birthday';
 
   @override
@@ -300,6 +297,77 @@ class AppLocalizationsEn extends AppLocalizations {
   String get businesses => 'Businesses';
 
   @override
+  String get restaurants => 'Restaurants';
+
+  @override
+  String get bars => 'Bars';
+
+  @override
+  String get clubs => 'Clubs';
+
+  @override
+  String get coffeeShops => 'Coffee Shops';
+
+  @override
+  String get shops => 'Shops';
+
+  @override
+  String get services => 'Services';
+
+  @override
+  String get people => 'People';
+
+  @override
+  String get friendships => 'Friendships';
+
+  @override
+  String get experiences => 'Experiences';
+
+  @override
+  String get dating => 'Dating';
+
+  @override
+  String get trips => 'Trips';
+
+  @override
+  String get sightSeeing => 'Sight Seeing';
+
+  @override
+  String get documentary => 'Documentary';
+
+  @override
+  String get standUpComedy => 'Stand-Up Comedy';
+
+  @override
+  String get anime => 'Anime';
+
+  @override
+  String get manga => 'Manga';
+
+  @override
+  String get cartoons => 'Cartoons';
+
+  @override
+  String get whatAreYourSkills => 'What are your skills?';
+
+  @override
+  String get selectYourSkillsOrAddCustom =>
+      'Select your skills or add custom ones to showcase your talents';
+
+  @override
+  String get addCustomSkill => 'Add custom skill';
+
+  @override
+  String get whatAreYourInterests => 'What are your interests?';
+
+  @override
+  String get selectInterestsToPersonalize =>
+      'Select your interests to personalize your experience';
+
+  @override
+  String get addCustomInterest => 'Add custom interest';
+
+  @override
   String hiUser(String userName) {
     return 'Hi $userName';
   }
@@ -445,9 +513,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recipe => 'Recipe';
 
   @override
-  String get people => 'People';
-
-  @override
   String get sportsTeams => 'Sports Teams';
 
   @override
@@ -461,4 +526,248 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get winterSolstice => 'Winter Solstice';
+
+  @override
+  String get month => 'Month';
+
+  @override
+  String get week => 'Week';
+
+  @override
+  String get agenda => 'Agenda';
+
+  @override
+  String get january => 'January';
+
+  @override
+  String get february => 'February';
+
+  @override
+  String get march => 'March';
+
+  @override
+  String get april => 'April';
+
+  @override
+  String get may => 'May';
+
+  @override
+  String get june => 'June';
+
+  @override
+  String get july => 'July';
+
+  @override
+  String get august => 'August';
+
+  @override
+  String get september => 'September';
+
+  @override
+  String get october => 'October';
+
+  @override
+  String get november => 'November';
+
+  @override
+  String get december => 'December';
+
+  @override
+  String get inbox => 'Inbox';
+
+  @override
+  String get groups => 'Groups';
+
+  @override
+  String get promotions => 'Promotions';
+
+  @override
+  String get draft => 'Draft';
+
+  @override
+  String get spam => 'Spam';
+
+  @override
+  String get trash => 'Trash';
+
+  @override
+  String get videoCallLink => 'Video Call Link';
+
+  @override
+  String get personalInformation => 'Personal Information';
+
+  @override
+  String get preferences => 'Preferences';
+
+  @override
+  String get skills => 'Skills';
+
+  @override
+  String get rated => 'Rated';
+
+  @override
+  String get bookmarks => 'Bookmarks';
+
+  @override
+  String get viewYourProgram => 'View Your Program';
+
+  @override
+  String get info => 'Info';
+
+  @override
+  String get addToSaved => 'Add to Saved';
+
+  @override
+  String get removeFromSaved => 'Remove from Saved';
+
+  @override
+  String get searchConversations => 'Search conversations...';
+
+  @override
+  String get noConversationsYet => 'No conversations yet';
+
+  @override
+  String get noMessagesYet => 'No messages yet';
+
+  @override
+  String get startMessagingJourney =>
+      'Start your messaging journey by tapping the + button';
+
+  @override
+  String get security => 'Security';
+
+  @override
+  String get developer => 'Developer';
+
+  @override
+  String get deviceSecurity => 'Device Security';
+
+  @override
+  String get securityImplications => 'Security Implications';
+
+  @override
+  String get unableToCheckDeviceSecurity => 'Unable to check device security';
+
+  @override
+  String get multiLanguageDisplayNames => 'Multi-Language Display Names';
+
+  @override
+  String get name => 'Name';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get phone => 'Phone';
+
+  @override
+  String get tapToManage => 'Tap to manage';
+
+  @override
+  String get notSet => 'Not set';
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get filterNotifications => 'Filter Notifications';
+
+  @override
+  String get social => 'Social';
+
+  @override
+  String get socialDescription => 'Friend requests, comments, activity';
+
+  @override
+  String get newRecommendations => 'Recommendations';
+
+  @override
+  String get newRecommendationsDescription => 'New recommendations, trending';
+
+  @override
+  String get system => 'System';
+
+  @override
+  String get systemDescription => 'Digests, updates';
+
+  @override
+  String get reset => 'Reset';
+
+  @override
+  String get apply => 'Apply';
+
+  @override
+  String get noNotifications => 'No notifications';
+
+  @override
+  String get allCaughtUp => 'You\'re all caught up!';
+
+  @override
+  String get justNow => 'Just now';
+
+  @override
+  String minutesAgo(Object minutes) {
+    return '${minutes}m ago';
+  }
+
+  @override
+  String hoursAgo(Object hours) {
+    return '${hours}h ago';
+  }
+
+  @override
+  String daysAgo(Object days) {
+    return '${days}d ago';
+  }
+
+  @override
+  String get notificationDeleted => 'Notification deleted';
+
+  @override
+  String get friendRequestAccepted => 'Friend request accepted!';
+
+  @override
+  String get weeklyRecommendationsReady =>
+      'Your personalized weekly recommendations are ready!';
+
+  @override
+  String get newFriendRequest => 'New Friend Request';
+
+  @override
+  String get newMovieRecommendation => 'New Movie Recommendation';
+
+  @override
+  String get commentOnYourReview => 'Comment on Your Review';
+
+  @override
+  String get weeklyDigestReady => 'Weekly Digest Ready';
+
+  @override
+  String get trendingInYourArea => 'Trending in Your Area';
+
+  @override
+  String get recommendationPreferences => 'Recommendation Preferences';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get noPreferencesSelected => 'No preferences selected';
+
+  @override
+  String get tapEditToSelectInterests => 'Tap Edit to select your interests';
+
+  @override
+  String updatedRatingFor(Object title) {
+    return 'Updated rating for \"$title\"';
+  }
+
+  @override
+  String get failedToUpdateRating => 'Failed to update rating';
+
+  @override
+  String get noRatingsYet => 'No ratings yet';
+
+  @override
+  String get myRating => 'My Rating: ';
 }

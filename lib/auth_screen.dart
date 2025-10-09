@@ -232,20 +232,32 @@ class _AuthScreenState extends State<AuthScreen> with AutomaticKeepAliveClientMi
             iconTheme: const IconThemeData(
               color: Colors.black,
             ),
-            title: Center(
-              child: Image.asset(
-                'assets/images/light_yajid_logo.png',
-                height: 48,
-                fit: BoxFit.contain,
-              ),
+            leading: !_isLogin
+                ? IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.black),
+                    onPressed: () {
+                      setState(() {
+                        _isLogin = true;
+                      });
+                    },
+                  )
+                : null,
+            centerTitle: true,
+            title: Image.asset(
+              'assets/images/light_yajid_logo.png',
+              height: 48,
+              fit: BoxFit.contain,
             ),
             actions: [
-              IconButton(
-                icon: const Icon(
-                  Icons.language,
-                  color: Colors.black,
+              Padding(
+                padding: const EdgeInsets.only(right: 10),
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.language,
+                    color: Colors.black,
+                  ),
+                  onPressed: _showLanguageDialog,
                 ),
-                onPressed: _showLanguageDialog,
               ),
             ],
           ),
@@ -1128,39 +1140,37 @@ class _AuthScreenState extends State<AuthScreen> with AutomaticKeepAliveClientMi
                                     const SizedBox(height: 16),
                                   ],
                                   const SizedBox(height: 16),
-                                  MouseRegion(
-                                    onEnter: (_) => setState(
-                                        () => _isHoveringCreateAccount = true),
-                                    onExit: (_) => setState(
-                                        () => _isHoveringCreateAccount = false),
-                                    child: TextButton(
-                                      onPressed: isLoading ? null : () {
-                                        setState(() {
-                                          _isLogin = !_isLogin;
-                                        });
-                                      },
-                                      style: TextButton.styleFrom(
-                                        foregroundColor: _isHoveringCreateAccount
-                                            ? Colors.blue
-                                            : Colors.black,
-                                      ),
-                                      child: AnimatedDefaultTextStyle(
-                                        duration: const Duration(milliseconds: 200),
-                                        style: TextStyle(
-                                          color: Theme.of(context).textTheme.bodyLarge?.color,
-                                          decoration: _isHoveringCreateAccount
-                                              ? TextDecoration.underline
-                                              : TextDecoration.none,
+                                  if (_isLogin)
+                                    MouseRegion(
+                                      onEnter: (_) => setState(
+                                          () => _isHoveringCreateAccount = true),
+                                      onExit: (_) => setState(
+                                          () => _isHoveringCreateAccount = false),
+                                      child: TextButton(
+                                        onPressed: isLoading ? null : () {
+                                          setState(() {
+                                            _isLogin = false;
+                                          });
+                                        },
+                                        style: TextButton.styleFrom(
+                                          foregroundColor: _isHoveringCreateAccount
+                                              ? Colors.blue
+                                              : Colors.black,
                                         ),
-                                        child: Text(
-                                            _isLogin
-                                                ? AppLocalizations.of(context)!
-                                                    .createAnAccount
-                                                : AppLocalizations.of(context)!
-                                                    .alreadyHaveAnAccount),
+                                        child: AnimatedDefaultTextStyle(
+                                          duration: const Duration(milliseconds: 200),
+                                          style: TextStyle(
+                                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                                            decoration: _isHoveringCreateAccount
+                                                ? TextDecoration.underline
+                                                : TextDecoration.none,
+                                          ),
+                                          child: Text(
+                                              AppLocalizations.of(context)!
+                                                  .createAnAccount),
+                                        ),
                                       ),
                                     ),
-                                  ),
                                   if (_isLogin)
                                     MouseRegion(
                                       onEnter: (_) => setState(

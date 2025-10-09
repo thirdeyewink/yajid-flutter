@@ -98,8 +98,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       _notifications.removeWhere((n) => n['id'] == notificationId);
     });
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Center(child: Text('Notification deleted')),
+      SnackBar(
+        content: Center(child: Text(AppLocalizations.of(context)!.notificationDeleted)),
         backgroundColor: Colors.red,
         behavior: SnackBarBehavior.floating,
       ),
@@ -135,15 +135,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Filter Notifications'),
+        title: Text(AppLocalizations.of(context)!.filterNotifications),
         content: StatefulBuilder(
           builder: (context, setDialogState) {
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 CheckboxListTile(
-                  title: const Text('Social'),
-                  subtitle: const Text('Friend requests, comments, activity'),
+                  title: Text(AppLocalizations.of(context)!.social),
+                  subtitle: Text(AppLocalizations.of(context)!.socialDescription),
                   value: _selectedFilters.contains('social'),
                   onChanged: (bool? value) {
                     setDialogState(() {
@@ -156,8 +156,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   },
                 ),
                 CheckboxListTile(
-                  title: const Text('Recommendations'),
-                  subtitle: const Text('New recommendations, trending'),
+                  title: Text(AppLocalizations.of(context)!.newRecommendations),
+                  subtitle: Text(AppLocalizations.of(context)!.newRecommendationsDescription),
                   value: _selectedFilters.contains('recommendation'),
                   onChanged: (bool? value) {
                     setDialogState(() {
@@ -170,8 +170,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   },
                 ),
                 CheckboxListTile(
-                  title: const Text('System'),
-                  subtitle: const Text('Digests, updates'),
+                  title: Text(AppLocalizations.of(context)!.system),
+                  subtitle: Text(AppLocalizations.of(context)!.systemDescription),
                   value: _selectedFilters.contains('system'),
                   onChanged: (bool? value) {
                     setDialogState(() {
@@ -195,14 +195,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               });
               Navigator.pop(context);
             },
-            child: const Text('Reset'),
+            child: Text(AppLocalizations.of(context)!.reset),
           ),
           ElevatedButton(
             onPressed: () {
               setState(() {});
               Navigator.pop(context);
             },
-            child: const Text('Apply'),
+            child: Text(AppLocalizations.of(context)!.apply),
           ),
         ],
       ),
@@ -214,9 +214,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Scaffold(
       backgroundColor: AppTheme.screenBackground,
       appBar: AppTheme.buildAppBar(
-        title: const Text(
-          'Notifications',
-          style: TextStyle(
+        title: Text(
+          AppLocalizations.of(context)!.notifications,
+          style: const TextStyle(
             color: Colors.white,
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -260,7 +260,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'No notifications',
+              AppLocalizations.of(context)!.noNotifications,
               style: TextStyle(
                 fontSize: 18,
                 color: Colors.grey.shade600,
@@ -268,7 +268,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'You\'re all caught up!',
+              AppLocalizations.of(context)!.allCaughtUp,
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey.shade500,
@@ -364,13 +364,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final difference = now.difference(time);
 
     if (difference.inMinutes < 1) {
-      return 'Just now';
+      return AppLocalizations.of(context)!.justNow;
     } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m ago';
+      return AppLocalizations.of(context)!.minutesAgo(difference.inMinutes.toString());
     } else if (difference.inHours < 24) {
-      return '${difference.inHours}h ago';
+      return AppLocalizations.of(context)!.hoursAgo(difference.inHours.toString());
     } else if (difference.inDays < 7) {
-      return '${difference.inDays}d ago';
+      return AppLocalizations.of(context)!.daysAgo(difference.inDays.toString());
     } else {
       return '${time.day}/${time.month}/${time.year}';
     }
@@ -391,8 +391,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Center(child: Text('Friend request accepted!')),
+                SnackBar(
+                  content: Center(child: Text(AppLocalizations.of(context)!.friendRequestAccepted)),
                   backgroundColor: Colors.green,
                   behavior: SnackBarBehavior.floating,
                 ),
@@ -457,12 +457,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(AppLocalizations.of(context)!.weeklyDigest),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.email, size: 48, color: Colors.orange),
-            SizedBox(height: 16),
-            Text('Your personalized weekly recommendations are ready!'),
+            const Icon(Icons.email, size: 48, color: Colors.orange),
+            const SizedBox(height: 16),
+            Text(AppLocalizations.of(context)!.weeklyRecommendationsReady),
           ],
         ),
         actions: [

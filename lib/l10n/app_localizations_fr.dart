@@ -54,9 +54,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get female => 'Femme';
 
   @override
-  String get other => 'Autre';
-
-  @override
   String get birthday => 'Date d\'anniversaire';
 
   @override
@@ -310,6 +307,77 @@ class AppLocalizationsFr extends AppLocalizations {
   String get businesses => 'Entreprises';
 
   @override
+  String get restaurants => 'Restaurants';
+
+  @override
+  String get bars => 'Bars';
+
+  @override
+  String get clubs => 'Clubs';
+
+  @override
+  String get coffeeShops => 'Cafés';
+
+  @override
+  String get shops => 'Magasins';
+
+  @override
+  String get services => 'Services';
+
+  @override
+  String get people => 'Personnes';
+
+  @override
+  String get friendships => 'Amitiés';
+
+  @override
+  String get experiences => 'Expériences';
+
+  @override
+  String get dating => 'Rendez-vous';
+
+  @override
+  String get trips => 'Voyages';
+
+  @override
+  String get sightSeeing => 'Visites Touristiques';
+
+  @override
+  String get documentary => 'Documentaire';
+
+  @override
+  String get standUpComedy => 'Comédie Stand-Up';
+
+  @override
+  String get anime => 'Anime';
+
+  @override
+  String get manga => 'Manga';
+
+  @override
+  String get cartoons => 'Dessins Animés';
+
+  @override
+  String get whatAreYourSkills => 'Quelles sont vos compétences?';
+
+  @override
+  String get selectYourSkillsOrAddCustom =>
+      'Sélectionnez vos compétences ou ajoutez-en de personnalisées pour mettre en valeur vos talents';
+
+  @override
+  String get addCustomSkill => 'Ajouter une compétence personnalisée';
+
+  @override
+  String get whatAreYourInterests => 'Quels sont vos intérêts?';
+
+  @override
+  String get selectInterestsToPersonalize =>
+      'Sélectionnez vos intérêts pour personnaliser votre expérience';
+
+  @override
+  String get addCustomInterest => 'Ajouter un intérêt personnalisé';
+
+  @override
   String hiUser(String userName) {
     return 'Salut $userName';
   }
@@ -455,9 +523,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get recipe => 'Recette';
 
   @override
-  String get people => 'Personnes';
-
-  @override
   String get sportsTeams => 'Équipes Sportives';
 
   @override
@@ -471,4 +536,251 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get winterSolstice => 'Solstice d\'Hiver';
+
+  @override
+  String get month => 'Mois';
+
+  @override
+  String get week => 'Semaine';
+
+  @override
+  String get agenda => 'Agenda';
+
+  @override
+  String get january => 'Janvier';
+
+  @override
+  String get february => 'Février';
+
+  @override
+  String get march => 'Mars';
+
+  @override
+  String get april => 'Avril';
+
+  @override
+  String get may => 'Mai';
+
+  @override
+  String get june => 'Juin';
+
+  @override
+  String get july => 'Juillet';
+
+  @override
+  String get august => 'Août';
+
+  @override
+  String get september => 'Septembre';
+
+  @override
+  String get october => 'Octobre';
+
+  @override
+  String get november => 'Novembre';
+
+  @override
+  String get december => 'Décembre';
+
+  @override
+  String get inbox => 'Boîte de Réception';
+
+  @override
+  String get groups => 'Groupes';
+
+  @override
+  String get promotions => 'Promotions';
+
+  @override
+  String get draft => 'Brouillon';
+
+  @override
+  String get spam => 'Spam';
+
+  @override
+  String get trash => 'Corbeille';
+
+  @override
+  String get videoCallLink => 'Lien d\'Appel Vidéo';
+
+  @override
+  String get personalInformation => 'Informations Personnelles';
+
+  @override
+  String get preferences => 'Préférences';
+
+  @override
+  String get skills => 'Compétences';
+
+  @override
+  String get rated => 'Notés';
+
+  @override
+  String get bookmarks => 'Favoris';
+
+  @override
+  String get viewYourProgram => 'Voir votre Programme';
+
+  @override
+  String get info => 'Info';
+
+  @override
+  String get addToSaved => 'Ajouter aux Enregistrés';
+
+  @override
+  String get removeFromSaved => 'Retirer des Enregistrés';
+
+  @override
+  String get searchConversations => 'Rechercher des conversations...';
+
+  @override
+  String get noConversationsYet => 'Aucune conversation pour le moment';
+
+  @override
+  String get noMessagesYet => 'Aucun message pour le moment';
+
+  @override
+  String get startMessagingJourney =>
+      'Commencez votre voyage de messagerie en appuyant sur le bouton +';
+
+  @override
+  String get security => 'Sécurité';
+
+  @override
+  String get developer => 'Développeur';
+
+  @override
+  String get deviceSecurity => 'Sécurité de l\'Appareil';
+
+  @override
+  String get securityImplications => 'Implications de Sécurité';
+
+  @override
+  String get unableToCheckDeviceSecurity =>
+      'Impossible de vérifier la sécurité de l\'appareil';
+
+  @override
+  String get multiLanguageDisplayNames => 'Noms d\'Affichage Multilingues';
+
+  @override
+  String get name => 'Nom';
+
+  @override
+  String get email => 'E-mail';
+
+  @override
+  String get phone => 'Téléphone';
+
+  @override
+  String get tapToManage => 'Appuyez pour gérer';
+
+  @override
+  String get notSet => 'Non défini';
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get filterNotifications => 'Filtrer les Notifications';
+
+  @override
+  String get social => 'Social';
+
+  @override
+  String get socialDescription => 'Demandes d\'amis, commentaires, activité';
+
+  @override
+  String get newRecommendations => 'Recommandations';
+
+  @override
+  String get newRecommendationsDescription =>
+      'Nouvelles recommandations, tendances';
+
+  @override
+  String get system => 'Système';
+
+  @override
+  String get systemDescription => 'Résumés, mises à jour';
+
+  @override
+  String get reset => 'Réinitialiser';
+
+  @override
+  String get apply => 'Appliquer';
+
+  @override
+  String get noNotifications => 'Aucune notification';
+
+  @override
+  String get allCaughtUp => 'Vous êtes à jour!';
+
+  @override
+  String get justNow => 'À l\'instant';
+
+  @override
+  String minutesAgo(Object minutes) {
+    return 'Il y a ${minutes}m';
+  }
+
+  @override
+  String hoursAgo(Object hours) {
+    return 'Il y a ${hours}h';
+  }
+
+  @override
+  String daysAgo(Object days) {
+    return 'Il y a ${days}j';
+  }
+
+  @override
+  String get notificationDeleted => 'Notification supprimée';
+
+  @override
+  String get friendRequestAccepted => 'Demande d\'ami acceptée!';
+
+  @override
+  String get weeklyRecommendationsReady =>
+      'Vos recommandations hebdomadaires personnalisées sont prêtes!';
+
+  @override
+  String get newFriendRequest => 'Nouvelle Demande d\'Ami';
+
+  @override
+  String get newMovieRecommendation => 'Nouvelle Recommandation de Film';
+
+  @override
+  String get commentOnYourReview => 'Commentaire sur Votre Critique';
+
+  @override
+  String get weeklyDigestReady => 'Résumé Hebdomadaire Prêt';
+
+  @override
+  String get trendingInYourArea => 'Tendances Près de Vous';
+
+  @override
+  String get recommendationPreferences => 'Préférences de Recommandation';
+
+  @override
+  String get edit => 'Modifier';
+
+  @override
+  String get noPreferencesSelected => 'Aucune préférence sélectionnée';
+
+  @override
+  String get tapEditToSelectInterests =>
+      'Appuyez sur Modifier pour sélectionner vos intérêts';
+
+  @override
+  String updatedRatingFor(Object title) {
+    return 'Note mise à jour pour \"$title\"';
+  }
+
+  @override
+  String get failedToUpdateRating => 'Échec de la mise à jour de la note';
+
+  @override
+  String get noRatingsYet => 'Aucune note pour le moment';
+
+  @override
+  String get myRating => 'Ma Note: ';
 }

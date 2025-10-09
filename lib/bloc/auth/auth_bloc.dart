@@ -99,18 +99,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthSignUpRequested event,
     Emitter<AuthState> emit,
   ) async {
+    print('AuthBloc: Sign up requested for email: ${event.email}');
     emit(const AuthLoading());
     try {
+      print('AuthBloc: Creating user with email and password');
       final credential = await _firebaseAuth.createUserWithEmailAndPassword(
         email: event.email,
         password: event.password,
       );
 
       if (credential.user != null) {
+        print('AuthBloc: User created successfully, uid: ${credential.user!.uid}');
+
         // Update display name
+        print('AuthBloc: Updating display name');
         await credential.user!.updateDisplayName('${event.firstName} ${event.lastName}');
 
         // Create user profile
+        print('AuthBloc: Creating user profile in Firestore');
         await _userProfileService.createUserProfile(
           firstName: event.firstName,
           lastName: event.lastName,
@@ -121,14 +127,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         );
 
         // Save credentials to secure storage
+        print('AuthBloc: Saving user credentials to secure storage');
         await _saveUserCredentials(credential.user!);
+
         _logger.info('User registered successfully: ${credential.user!.uid}');
+        print('AuthBloc: Emitting AuthAuthenticated state');
         emit(AuthAuthenticated(user: credential.user!));
+      } else {
+        print('AuthBloc: ERROR - credential.user is null');
       }
     } on FirebaseAuthException catch (e) {
+      print('AuthBloc: FirebaseAuthException during signup: ${e.code} - ${e.message}');
       _logger.error('Sign up error: ${e.code}', e);
       emit(AuthError(message: _getErrorMessage(e.code)));
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('AuthBloc: Unexpected error during signup: $e');
+      print('AuthBloc: Stack trace: $stackTrace');
       _logger.error('Unexpected sign up error', e);
       emit(const AuthError(message: 'An unexpected error occurred'));
     }

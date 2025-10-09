@@ -27,6 +27,27 @@ class _ChatListScreenState extends State<ChatListScreen> {
     _initializeMessaging();
   }
 
+  String _getLocalizedCategoryName(String category) {
+    switch (category) {
+      case 'Inbox':
+        return AppLocalizations.of(context)!.inbox;
+      case 'Groups':
+        return AppLocalizations.of(context)!.groups;
+      case 'Events':
+        return AppLocalizations.of(context)!.events;
+      case 'Promotions':
+        return AppLocalizations.of(context)!.promotions;
+      case 'Draft':
+        return AppLocalizations.of(context)!.draft;
+      case 'Spam':
+        return AppLocalizations.of(context)!.spam;
+      case 'Trash':
+        return AppLocalizations.of(context)!.trash;
+      default:
+        return category;
+    }
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -208,7 +229,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
           child: Align(
             alignment: Alignment.centerLeft,
             child: Text(
-              _selectedCategory,
+              _getLocalizedCategoryName(_selectedCategory),
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 18,
@@ -228,7 +249,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
             controller: _searchController,
             style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
-              hintText: 'Search conversations...',
+              hintText: AppLocalizations.of(context)!.searchConversations,
               hintStyle: const TextStyle(color: Colors.white70),
               border: InputBorder.none,
               prefixIcon: const Icon(Icons.search, color: Colors.white70, size: 20),
@@ -308,7 +329,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No conversations yet',
+                    AppLocalizations.of(context)!.noConversationsYet,
                     style: TextStyle(
                       fontSize: 18,
                       color: Colors.grey.shade600,
@@ -316,7 +337,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Start your messaging journey by tapping the + button',
+                    AppLocalizations.of(context)!.startMessagingJourney,
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey.shade500,
@@ -374,7 +395,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                         ),
                       )
                     : Text(
-                        'No messages yet',
+                        AppLocalizations.of(context)!.noMessagesYet,
                         style: TextStyle(color: Colors.grey.shade500),
                       ),
                 trailing: _selectedChatIds.isEmpty
@@ -484,7 +505,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
           ),
           _buildDrawerItem(
             icon: Icons.inbox,
-            title: 'Inbox',
+            title: _getLocalizedCategoryName('Inbox'),
             isSelected: _selectedCategory == 'Inbox',
             onTap: () {
               setState(() {
@@ -495,7 +516,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
           ),
           _buildDrawerItem(
             icon: Icons.group,
-            title: 'Groups',
+            title: _getLocalizedCategoryName('Groups'),
             isSelected: _selectedCategory == 'Groups',
             onTap: () {
               setState(() {
@@ -506,7 +527,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
           ),
           _buildDrawerItem(
             icon: Icons.event,
-            title: 'Events',
+            title: _getLocalizedCategoryName('Events'),
             isSelected: _selectedCategory == 'Events',
             onTap: () {
               setState(() {
@@ -517,7 +538,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
           ),
           _buildDrawerItem(
             icon: Icons.local_offer,
-            title: 'Promotions',
+            title: _getLocalizedCategoryName('Promotions'),
             isSelected: _selectedCategory == 'Promotions',
             onTap: () {
               setState(() {
@@ -528,7 +549,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
           ),
           _buildDrawerItem(
             icon: Icons.drafts,
-            title: 'Draft',
+            title: _getLocalizedCategoryName('Draft'),
             isSelected: _selectedCategory == 'Draft',
             onTap: () {
               setState(() {
@@ -539,7 +560,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
           ),
           _buildDrawerItem(
             icon: Icons.report,
-            title: 'Spam',
+            title: _getLocalizedCategoryName('Spam'),
             isSelected: _selectedCategory == 'Spam',
             onTap: () {
               setState(() {
@@ -550,7 +571,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
           ),
           _buildDrawerItem(
             icon: Icons.delete,
-            title: 'Trash',
+            title: _getLocalizedCategoryName('Trash'),
             isSelected: _selectedCategory == 'Trash',
             onTap: () {
               setState(() {

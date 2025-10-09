@@ -54,9 +54,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get female => 'أنثى';
 
   @override
-  String get other => 'آخر';
-
-  @override
   String get birthday => 'عيد الميلاد';
 
   @override
@@ -299,6 +296,76 @@ class AppLocalizationsAr extends AppLocalizations {
   String get businesses => 'أعمال';
 
   @override
+  String get restaurants => 'مطاعم';
+
+  @override
+  String get bars => 'حانات';
+
+  @override
+  String get clubs => 'نوادي';
+
+  @override
+  String get coffeeShops => 'مقاهي';
+
+  @override
+  String get shops => 'متاجر';
+
+  @override
+  String get services => 'خدمات';
+
+  @override
+  String get people => 'أشخاص';
+
+  @override
+  String get friendships => 'صداقات';
+
+  @override
+  String get experiences => 'تجارب';
+
+  @override
+  String get dating => 'مواعيد';
+
+  @override
+  String get trips => 'رحلات';
+
+  @override
+  String get sightSeeing => 'جولات سياحية';
+
+  @override
+  String get documentary => 'وثائقي';
+
+  @override
+  String get standUpComedy => 'كوميديا ستاند اب';
+
+  @override
+  String get anime => 'أنمي';
+
+  @override
+  String get manga => 'مانجا';
+
+  @override
+  String get cartoons => 'رسوم متحركة';
+
+  @override
+  String get whatAreYourSkills => 'ما هي مهاراتك؟';
+
+  @override
+  String get selectYourSkillsOrAddCustom =>
+      'اختر مهاراتك أو أضف مهارات مخصصة لإظهار مواهبك';
+
+  @override
+  String get addCustomSkill => 'إضافة مهارة مخصصة';
+
+  @override
+  String get whatAreYourInterests => 'ما هي اهتماماتك؟';
+
+  @override
+  String get selectInterestsToPersonalize => 'اختر اهتماماتك لتخصيص تجربتك';
+
+  @override
+  String get addCustomInterest => 'إضافة اهتمام مخصص';
+
+  @override
   String hiUser(String userName) {
     return 'مرحبا $userName';
   }
@@ -444,9 +511,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get recipe => 'وصفة';
 
   @override
-  String get people => 'أشخاص';
-
-  @override
   String get sportsTeams => 'فرق رياضية';
 
   @override
@@ -460,4 +524,247 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get winterSolstice => 'الانقلاب الشتوي';
+
+  @override
+  String get month => 'شهر';
+
+  @override
+  String get week => 'أسبوع';
+
+  @override
+  String get agenda => 'جدول الأعمال';
+
+  @override
+  String get january => 'يناير';
+
+  @override
+  String get february => 'فبراير';
+
+  @override
+  String get march => 'مارس';
+
+  @override
+  String get april => 'أبريل';
+
+  @override
+  String get may => 'مايو';
+
+  @override
+  String get june => 'يونيو';
+
+  @override
+  String get july => 'يوليو';
+
+  @override
+  String get august => 'أغسطس';
+
+  @override
+  String get september => 'سبتمبر';
+
+  @override
+  String get october => 'أكتوبر';
+
+  @override
+  String get november => 'نوفمبر';
+
+  @override
+  String get december => 'ديسمبر';
+
+  @override
+  String get inbox => 'صندوق الوارد';
+
+  @override
+  String get groups => 'مجموعات';
+
+  @override
+  String get promotions => 'عروض ترويجية';
+
+  @override
+  String get draft => 'مسودة';
+
+  @override
+  String get spam => 'رسائل غير مرغوب فيها';
+
+  @override
+  String get trash => 'سلة المهملات';
+
+  @override
+  String get videoCallLink => 'رابط مكالمة الفيديو';
+
+  @override
+  String get personalInformation => 'المعلومات الشخصية';
+
+  @override
+  String get preferences => 'التفضيلات';
+
+  @override
+  String get skills => 'المهارات';
+
+  @override
+  String get rated => 'مصنف';
+
+  @override
+  String get bookmarks => 'المفضلة';
+
+  @override
+  String get viewYourProgram => 'عرض برنامجك';
+
+  @override
+  String get info => 'معلومات';
+
+  @override
+  String get addToSaved => 'إضافة إلى المحفوظات';
+
+  @override
+  String get removeFromSaved => 'إزالة من المحفوظات';
+
+  @override
+  String get searchConversations => 'البحث في المحادثات...';
+
+  @override
+  String get noConversationsYet => 'لا توجد محادثات بعد';
+
+  @override
+  String get noMessagesYet => 'لا توجد رسائل بعد';
+
+  @override
+  String get startMessagingJourney =>
+      'ابدأ رحلة المراسلة الخاصة بك بالنقر فوق الزر +';
+
+  @override
+  String get security => 'الأمان';
+
+  @override
+  String get developer => 'المطور';
+
+  @override
+  String get deviceSecurity => 'أمان الجهاز';
+
+  @override
+  String get securityImplications => 'الآثار الأمنية';
+
+  @override
+  String get unableToCheckDeviceSecurity => 'تعذر التحقق من أمان الجهاز';
+
+  @override
+  String get multiLanguageDisplayNames => 'أسماء العرض متعددة اللغات';
+
+  @override
+  String get name => 'الاسم';
+
+  @override
+  String get email => 'البريد الإلكتروني';
+
+  @override
+  String get phone => 'الهاتف';
+
+  @override
+  String get tapToManage => 'انقر للإدارة';
+
+  @override
+  String get notSet => 'غير محدد';
+
+  @override
+  String get notifications => 'الإشعارات';
+
+  @override
+  String get filterNotifications => 'تصفية الإشعارات';
+
+  @override
+  String get social => 'اجتماعي';
+
+  @override
+  String get socialDescription => 'طلبات الصداقة، التعليقات، النشاط';
+
+  @override
+  String get newRecommendations => 'التوصيات';
+
+  @override
+  String get newRecommendationsDescription => 'توصيات جديدة، رائج';
+
+  @override
+  String get system => 'النظام';
+
+  @override
+  String get systemDescription => 'الملخصات، التحديثات';
+
+  @override
+  String get reset => 'إعادة تعيين';
+
+  @override
+  String get apply => 'تطبيق';
+
+  @override
+  String get noNotifications => 'لا توجد إشعارات';
+
+  @override
+  String get allCaughtUp => 'أنت على اطلاع بكل شيء!';
+
+  @override
+  String get justNow => 'الآن';
+
+  @override
+  String minutesAgo(Object minutes) {
+    return 'منذ $minutes دقيقة';
+  }
+
+  @override
+  String hoursAgo(Object hours) {
+    return 'منذ $hours ساعة';
+  }
+
+  @override
+  String daysAgo(Object days) {
+    return 'منذ $days يوم';
+  }
+
+  @override
+  String get notificationDeleted => 'تم حذف الإشعار';
+
+  @override
+  String get friendRequestAccepted => 'تم قبول طلب الصداقة!';
+
+  @override
+  String get weeklyRecommendationsReady => 'توصياتك الأسبوعية الشخصية جاهزة!';
+
+  @override
+  String get newFriendRequest => 'طلب صداقة جديد';
+
+  @override
+  String get newMovieRecommendation => 'توصية فيلم جديدة';
+
+  @override
+  String get commentOnYourReview => 'تعليق على مراجعتك';
+
+  @override
+  String get weeklyDigestReady => 'الملخص الأسبوعي جاهز';
+
+  @override
+  String get trendingInYourArea => 'رائج في منطقتك';
+
+  @override
+  String get recommendationPreferences => 'تفضيلات التوصيات';
+
+  @override
+  String get edit => 'تعديل';
+
+  @override
+  String get noPreferencesSelected => 'لم يتم تحديد تفضيلات';
+
+  @override
+  String get tapEditToSelectInterests => 'انقر فوق تعديل لتحديد اهتماماتك';
+
+  @override
+  String updatedRatingFor(Object title) {
+    return 'تم تحديث التقييم لـ \"$title\"';
+  }
+
+  @override
+  String get failedToUpdateRating => 'فشل تحديث التقييم';
+
+  @override
+  String get noRatingsYet => 'لا توجد تقييمات بعد';
+
+  @override
+  String get myRating => 'تقييمي: ';
 }

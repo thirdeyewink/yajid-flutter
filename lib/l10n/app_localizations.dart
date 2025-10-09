@@ -194,12 +194,6 @@ abstract class AppLocalizations {
   /// **'Female'**
   String get female;
 
-  /// No description provided for @other.
-  ///
-  /// In en, this message translates to:
-  /// **'Other'**
-  String get other;
-
   /// No description provided for @birthday.
   ///
   /// In en, this message translates to:
@@ -662,6 +656,144 @@ abstract class AppLocalizations {
   /// **'Businesses'**
   String get businesses;
 
+  /// No description provided for @restaurants.
+  ///
+  /// In en, this message translates to:
+  /// **'Restaurants'**
+  String get restaurants;
+
+  /// No description provided for @bars.
+  ///
+  /// In en, this message translates to:
+  /// **'Bars'**
+  String get bars;
+
+  /// No description provided for @clubs.
+  ///
+  /// In en, this message translates to:
+  /// **'Clubs'**
+  String get clubs;
+
+  /// No description provided for @coffeeShops.
+  ///
+  /// In en, this message translates to:
+  /// **'Coffee Shops'**
+  String get coffeeShops;
+
+  /// No description provided for @shops.
+  ///
+  /// In en, this message translates to:
+  /// **'Shops'**
+  String get shops;
+
+  /// No description provided for @services.
+  ///
+  /// In en, this message translates to:
+  /// **'Services'**
+  String get services;
+
+  /// No description provided for @people.
+  ///
+  /// In en, this message translates to:
+  /// **'People'**
+  String get people;
+
+  /// No description provided for @friendships.
+  ///
+  /// In en, this message translates to:
+  /// **'Friendships'**
+  String get friendships;
+
+  /// No description provided for @experiences.
+  ///
+  /// In en, this message translates to:
+  /// **'Experiences'**
+  String get experiences;
+
+  /// No description provided for @dating.
+  ///
+  /// In en, this message translates to:
+  /// **'Dating'**
+  String get dating;
+
+  /// No description provided for @trips.
+  ///
+  /// In en, this message translates to:
+  /// **'Trips'**
+  String get trips;
+
+  /// No description provided for @sightSeeing.
+  ///
+  /// In en, this message translates to:
+  /// **'Sight Seeing'**
+  String get sightSeeing;
+
+  /// No description provided for @documentary.
+  ///
+  /// In en, this message translates to:
+  /// **'Documentary'**
+  String get documentary;
+
+  /// No description provided for @standUpComedy.
+  ///
+  /// In en, this message translates to:
+  /// **'Stand-Up Comedy'**
+  String get standUpComedy;
+
+  /// No description provided for @anime.
+  ///
+  /// In en, this message translates to:
+  /// **'Anime'**
+  String get anime;
+
+  /// No description provided for @manga.
+  ///
+  /// In en, this message translates to:
+  /// **'Manga'**
+  String get manga;
+
+  /// No description provided for @cartoons.
+  ///
+  /// In en, this message translates to:
+  /// **'Cartoons'**
+  String get cartoons;
+
+  /// No description provided for @whatAreYourSkills.
+  ///
+  /// In en, this message translates to:
+  /// **'What are your skills?'**
+  String get whatAreYourSkills;
+
+  /// No description provided for @selectYourSkillsOrAddCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Select your skills or add custom ones to showcase your talents'**
+  String get selectYourSkillsOrAddCustom;
+
+  /// No description provided for @addCustomSkill.
+  ///
+  /// In en, this message translates to:
+  /// **'Add custom skill'**
+  String get addCustomSkill;
+
+  /// No description provided for @whatAreYourInterests.
+  ///
+  /// In en, this message translates to:
+  /// **'What are your interests?'**
+  String get whatAreYourInterests;
+
+  /// No description provided for @selectInterestsToPersonalize.
+  ///
+  /// In en, this message translates to:
+  /// **'Select your interests to personalize your experience'**
+  String get selectInterestsToPersonalize;
+
+  /// No description provided for @addCustomInterest.
+  ///
+  /// In en, this message translates to:
+  /// **'Add custom interest'**
+  String get addCustomInterest;
+
   /// Greeting with user name
   ///
   /// In en, this message translates to:
@@ -944,12 +1076,6 @@ abstract class AppLocalizations {
   /// **'Recipe'**
   String get recipe;
 
-  /// No description provided for @people.
-  ///
-  /// In en, this message translates to:
-  /// **'People'**
-  String get people;
-
   /// No description provided for @sportsTeams.
   ///
   /// In en, this message translates to:
@@ -979,6 +1105,474 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Winter Solstice'**
   String get winterSolstice;
+
+  /// No description provided for @month.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get month;
+
+  /// No description provided for @week.
+  ///
+  /// In en, this message translates to:
+  /// **'Week'**
+  String get week;
+
+  /// No description provided for @agenda.
+  ///
+  /// In en, this message translates to:
+  /// **'Agenda'**
+  String get agenda;
+
+  /// No description provided for @january.
+  ///
+  /// In en, this message translates to:
+  /// **'January'**
+  String get january;
+
+  /// No description provided for @february.
+  ///
+  /// In en, this message translates to:
+  /// **'February'**
+  String get february;
+
+  /// No description provided for @march.
+  ///
+  /// In en, this message translates to:
+  /// **'March'**
+  String get march;
+
+  /// No description provided for @april.
+  ///
+  /// In en, this message translates to:
+  /// **'April'**
+  String get april;
+
+  /// No description provided for @may.
+  ///
+  /// In en, this message translates to:
+  /// **'May'**
+  String get may;
+
+  /// No description provided for @june.
+  ///
+  /// In en, this message translates to:
+  /// **'June'**
+  String get june;
+
+  /// No description provided for @july.
+  ///
+  /// In en, this message translates to:
+  /// **'July'**
+  String get july;
+
+  /// No description provided for @august.
+  ///
+  /// In en, this message translates to:
+  /// **'August'**
+  String get august;
+
+  /// No description provided for @september.
+  ///
+  /// In en, this message translates to:
+  /// **'September'**
+  String get september;
+
+  /// No description provided for @october.
+  ///
+  /// In en, this message translates to:
+  /// **'October'**
+  String get october;
+
+  /// No description provided for @november.
+  ///
+  /// In en, this message translates to:
+  /// **'November'**
+  String get november;
+
+  /// No description provided for @december.
+  ///
+  /// In en, this message translates to:
+  /// **'December'**
+  String get december;
+
+  /// No description provided for @inbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Inbox'**
+  String get inbox;
+
+  /// No description provided for @groups.
+  ///
+  /// In en, this message translates to:
+  /// **'Groups'**
+  String get groups;
+
+  /// No description provided for @promotions.
+  ///
+  /// In en, this message translates to:
+  /// **'Promotions'**
+  String get promotions;
+
+  /// No description provided for @draft.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft'**
+  String get draft;
+
+  /// No description provided for @spam.
+  ///
+  /// In en, this message translates to:
+  /// **'Spam'**
+  String get spam;
+
+  /// No description provided for @trash.
+  ///
+  /// In en, this message translates to:
+  /// **'Trash'**
+  String get trash;
+
+  /// No description provided for @videoCallLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Video Call Link'**
+  String get videoCallLink;
+
+  /// No description provided for @personalInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal Information'**
+  String get personalInformation;
+
+  /// No description provided for @preferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get preferences;
+
+  /// No description provided for @skills.
+  ///
+  /// In en, this message translates to:
+  /// **'Skills'**
+  String get skills;
+
+  /// No description provided for @rated.
+  ///
+  /// In en, this message translates to:
+  /// **'Rated'**
+  String get rated;
+
+  /// No description provided for @bookmarks.
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmarks'**
+  String get bookmarks;
+
+  /// No description provided for @viewYourProgram.
+  ///
+  /// In en, this message translates to:
+  /// **'View Your Program'**
+  String get viewYourProgram;
+
+  /// No description provided for @info.
+  ///
+  /// In en, this message translates to:
+  /// **'Info'**
+  String get info;
+
+  /// No description provided for @addToSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to Saved'**
+  String get addToSaved;
+
+  /// No description provided for @removeFromSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from Saved'**
+  String get removeFromSaved;
+
+  /// No description provided for @searchConversations.
+  ///
+  /// In en, this message translates to:
+  /// **'Search conversations...'**
+  String get searchConversations;
+
+  /// No description provided for @noConversationsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No conversations yet'**
+  String get noConversationsYet;
+
+  /// No description provided for @noMessagesYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No messages yet'**
+  String get noMessagesYet;
+
+  /// No description provided for @startMessagingJourney.
+  ///
+  /// In en, this message translates to:
+  /// **'Start your messaging journey by tapping the + button'**
+  String get startMessagingJourney;
+
+  /// No description provided for @security.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get security;
+
+  /// No description provided for @developer.
+  ///
+  /// In en, this message translates to:
+  /// **'Developer'**
+  String get developer;
+
+  /// No description provided for @deviceSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Device Security'**
+  String get deviceSecurity;
+
+  /// No description provided for @securityImplications.
+  ///
+  /// In en, this message translates to:
+  /// **'Security Implications'**
+  String get securityImplications;
+
+  /// No description provided for @unableToCheckDeviceSecurity.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to check device security'**
+  String get unableToCheckDeviceSecurity;
+
+  /// No description provided for @multiLanguageDisplayNames.
+  ///
+  /// In en, this message translates to:
+  /// **'Multi-Language Display Names'**
+  String get multiLanguageDisplayNames;
+
+  /// No description provided for @name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get name;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// No description provided for @phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get phone;
+
+  /// No description provided for @tapToManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to manage'**
+  String get tapToManage;
+
+  /// No description provided for @notSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get notSet;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
+  /// No description provided for @filterNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter Notifications'**
+  String get filterNotifications;
+
+  /// No description provided for @social.
+  ///
+  /// In en, this message translates to:
+  /// **'Social'**
+  String get social;
+
+  /// No description provided for @socialDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend requests, comments, activity'**
+  String get socialDescription;
+
+  /// No description provided for @newRecommendations.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommendations'**
+  String get newRecommendations;
+
+  /// No description provided for @newRecommendationsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'New recommendations, trending'**
+  String get newRecommendationsDescription;
+
+  /// No description provided for @system.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get system;
+
+  /// No description provided for @systemDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Digests, updates'**
+  String get systemDescription;
+
+  /// No description provided for @reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get reset;
+
+  /// No description provided for @apply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get apply;
+
+  /// No description provided for @noNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications'**
+  String get noNotifications;
+
+  /// No description provided for @allCaughtUp.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re all caught up!'**
+  String get allCaughtUp;
+
+  /// No description provided for @justNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Just now'**
+  String get justNow;
+
+  /// No description provided for @minutesAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m ago'**
+  String minutesAgo(Object minutes);
+
+  /// No description provided for @hoursAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h ago'**
+  String hoursAgo(Object hours);
+
+  /// No description provided for @daysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d ago'**
+  String daysAgo(Object days);
+
+  /// No description provided for @notificationDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification deleted'**
+  String get notificationDeleted;
+
+  /// No description provided for @friendRequestAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Friend request accepted!'**
+  String get friendRequestAccepted;
+
+  /// No description provided for @weeklyRecommendationsReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Your personalized weekly recommendations are ready!'**
+  String get weeklyRecommendationsReady;
+
+  /// No description provided for @newFriendRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'New Friend Request'**
+  String get newFriendRequest;
+
+  /// No description provided for @newMovieRecommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'New Movie Recommendation'**
+  String get newMovieRecommendation;
+
+  /// No description provided for @commentOnYourReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Comment on Your Review'**
+  String get commentOnYourReview;
+
+  /// No description provided for @weeklyDigestReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly Digest Ready'**
+  String get weeklyDigestReady;
+
+  /// No description provided for @trendingInYourArea.
+  ///
+  /// In en, this message translates to:
+  /// **'Trending in Your Area'**
+  String get trendingInYourArea;
+
+  /// No description provided for @recommendationPreferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Recommendation Preferences'**
+  String get recommendationPreferences;
+
+  /// No description provided for @edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
+
+  /// No description provided for @noPreferencesSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'No preferences selected'**
+  String get noPreferencesSelected;
+
+  /// No description provided for @tapEditToSelectInterests.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Edit to select your interests'**
+  String get tapEditToSelectInterests;
+
+  /// No description provided for @updatedRatingFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated rating for \"{title}\"'**
+  String updatedRatingFor(Object title);
+
+  /// No description provided for @failedToUpdateRating.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update rating'**
+  String get failedToUpdateRating;
+
+  /// No description provided for @noRatingsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No ratings yet'**
+  String get noRatingsYet;
+
+  /// No description provided for @myRating.
+  ///
+  /// In en, this message translates to:
+  /// **'My Rating: '**
+  String get myRating;
 }
 
 class _AppLocalizationsDelegate
