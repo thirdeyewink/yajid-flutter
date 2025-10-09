@@ -1,0 +1,217 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*.*.*' # Trigger on version tags like v1.0.0
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.0.0)'
+        required: true
+        type: string
+
+env:
+  FLUTTER_VERSION: '3.24.0'
+  JAVA_VERSION: '11'
+
+jobs:
+  pre-deployment-checks:
+    name: Pre-deployment Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Run all tests
+        run: flutter test --coverage
+
+      - name: Analyze code
+        run: flutter analyze
+
+      - name: Check code formatting
+        run: dart format --set-exit-if-changed .
+
+      - name: Security audit
+        run: |
+          echo "Running security audit..."
+          # Add security scanning tools here (e.g., dependency check)
+
+  build-production:
+    name: Build Production APK
+    runs-on: ubuntu-latest
+    needs: pre-deployment-checks
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Create google-services.json (Production)
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICES_JSON_PRODUCTION }}" > android/app/src/production/google-services.json
+
+      # Production uses the existing firebase_options.dart (not environment-specific)
+
+      - name: Build Production APK (Release)
+        run: flutter build apk --release --flavor production -t lib/main_production.dart --build-number ${{ github.run_number }}
+
+      - name: Build Android App Bundle (for Play Store)
+        run: flutter build appbundle --release --flavor production -t lib/main_production.dart --build-number ${{ github.run_number }}
+
+      - name: Upload Production APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: yajid-production-apk
+          path: build/app/outputs/flutter-apk/app-production-release.apk
+
+      - name: Upload App Bundle
+        uses: actions/upload-artifact@v3
+        with:
+          name: yajid-production-bundle
+          path: build/app/outputs/bundle/productionRelease/app-production-release.aab
+
+  deploy-to-play-store:
+    name: Deploy to Google Play Store
+    runs-on: ubuntu-latest
+    needs: build-production
+    environment: production
+    if: startsWith(github.ref, 'refs/tags/v') # Only deploy tagged releases
+
+    steps:
+      - name: Download App Bundle
+        uses: actions/download-artifact@v3
+        with:
+          name: yajid-production-bundle
+
+      - name: Publish to Play Store
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT }}
+          packageName: com.example.myapp
+          releaseFiles: app-production-release.aab
+          track: internal # Start with internal, then promote to beta/production manually
+          status: draft
+          whatsNewDirectory: distribution/whatsnew/
+
+  deploy-web:
+    name: Deploy Web to Firebase Hosting
+    runs-on: ubuntu-latest
+    needs: pre-deployment-checks
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Build Web (Production)
+        run: flutter build web --release --base-href /
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_PRODUCTION }}
+          projectId: yajid-connect
+          channelId: live
+
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build-production, deploy-web]
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download APK
+        uses: actions/download-artifact@v3
+        with:
+          name: yajid-production-apk
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            app-production-release.apk
+          body: |
+            ## What's New in ${{ github.ref_name }}
+
+            [Automatically generated release notes]
+
+            ### Installation
+            Download the APK and install on your Android device.
+
+            ### Web App
+            Access the web version at: https://yajid-connect.web.app
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  post-deployment:
+    name: Post-deployment Tasks
+    runs-on: ubuntu-latest
+    needs: [deploy-to-play-store, deploy-web, create-release]
+    if: always()
+
+    steps:
+      - name: Send deployment notification
+        if: ${{ secrets.SLACK_WEBHOOK_URL }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            🚀 Production deployment ${{ job.status }}!
+            Version: ${{ github.ref_name }}
+            Commit: ${{ github.event.head_commit.message }}
+            Author: ${{ github.event.head_commit.author.name }}
+
+            Play Store: ${{ needs.deploy-to-play-store.result }}
+            Web Deploy: ${{ needs.deploy-web.result }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Monitor deployment
+        run: |
+          echo "Monitoring production deployment..."
+          echo "Check Firebase Console for real-time metrics"
+          echo "Check Play Store Console for rollout status"

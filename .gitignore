@@ -49,3 +49,18 @@ android/build/
 
 # Test output
 test_output.txt
+
+# Environment-specific Firebase configuration
+# Keep the production firebase_options.dart but exclude dev/staging
+lib/firebase_options_dev.dart
+lib/firebase_options_staging.dart
+
+# Flavor-specific google-services.json files
+# These contain API keys and should not be committed
+android/app/src/dev/google-services.json
+android/app/src/staging/google-services.json
+android/app/src/production/google-services.json
+
+# Environment variable files
+.env*
+!.env.example

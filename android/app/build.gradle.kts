@@ -35,6 +35,30 @@ android {
         versionName = flutter.versionName
     }
 
+    flavorDimensions += "environment"
+
+    productFlavors {
+        create("dev") {
+            dimension = "environment"
+            applicationId = "com.example.myapp.dev"
+            versionNameSuffix = "-dev"
+            resValue("string", "app_name", "Yajid (Dev)")
+        }
+
+        create("staging") {
+            dimension = "environment"
+            applicationId = "com.example.myapp.staging"
+            versionNameSuffix = "-staging"
+            resValue("string", "app_name", "Yajid (Staging)")
+        }
+
+        create("production") {
+            dimension = "environment"
+            applicationId = "com.example.myapp"
+            resValue("string", "app_name", "Yajid")
+        }
+    }
+
     buildTypes {
         release {
             // Enable code shrinking, obfuscation, and optimization

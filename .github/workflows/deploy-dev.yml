@@ -1,0 +1,124 @@
+name: Deploy to Development
+
+on:
+  push:
+    branches: [ develop ]
+  workflow_dispatch: # Allow manual trigger
+
+env:
+  FLUTTER_VERSION: '3.24.0'
+  JAVA_VERSION: '11'
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy Development APK
+    runs-on: ubuntu-latest
+    environment: development
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Create Firebase options file
+        run: |
+          echo "${{ secrets.FIREBASE_OPTIONS_DEV }}" > lib/firebase_options_dev.dart
+
+      - name: Create google-services.json (Dev)
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICES_JSON_DEV }}" > android/app/src/dev/google-services.json
+
+      - name: Build APK (Dev flavor - Debug)
+        run: flutter build apk --debug --flavor dev -t lib/main_dev.dart
+
+      - name: Build APK (Dev flavor - Release)
+        run: flutter build apk --release --flavor dev -t lib/main_dev.dart
+
+      - name: Upload Dev APK (Debug)
+        uses: actions/upload-artifact@v3
+        with:
+          name: yajid-dev-debug
+          path: build/app/outputs/flutter-apk/app-dev-debug.apk
+
+      - name: Upload Dev APK (Release)
+        uses: actions/upload-artifact@v3
+        with:
+          name: yajid-dev-release
+          path: build/app/outputs/flutter-apk/app-dev-release.apk
+
+      # Optional: Deploy to Firebase App Distribution
+      - name: Deploy to Firebase App Distribution
+        if: github.event_name == 'push'
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_APP_ID_DEV }}
+          token: ${{ secrets.FIREBASE_TOKEN }}
+          groups: developers, testers
+          file: build/app/outputs/flutter-apk/app-dev-debug.apk
+          releaseNotes: |
+            Development build from commit: ${{ github.sha }}
+            Branch: ${{ github.ref_name }}
+            Commit message: ${{ github.event.head_commit.message }}
+
+  seed-data:
+    name: Seed Development Data
+    runs-on: ubuntu-latest
+    needs: build-and-deploy
+    if: github.event_name == 'workflow_dispatch' # Only run on manual trigger
+    environment: development
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Get dependencies
+        run: flutter pub get
+
+      - name: Create Firebase options file
+        run: |
+          echo "${{ secrets.FIREBASE_OPTIONS_DEV }}" > lib/firebase_options_dev.dart
+
+      - name: Run data seeding script
+        run: flutter run scripts/seed_data.dart --dart-define=ENV=dev
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}
+
+  notify:
+    name: Notify Team
+    runs-on: ubuntu-latest
+    needs: build-and-deploy
+    if: always()
+
+    steps:
+      - name: Send Slack notification
+        if: ${{ secrets.SLACK_WEBHOOK_URL }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            Development build ${{ job.status }}
+            Commit: ${{ github.event.head_commit.message }}
+            Author: ${{ github.event.head_commit.author.name }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
