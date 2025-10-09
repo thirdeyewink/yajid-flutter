@@ -94,16 +94,17 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer2<LocaleProvider, ThemeProvider>(
         builder: (context, localeProvider, themeProvider, child) {
-          return EnvironmentBanner(
-            child: MaterialApp(
-              title: currentConfig.appName,
-              theme: themeProvider.themeData,
-              locale: localeProvider.locale,
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              debugShowCheckedModeBanner: currentConfig.showDebugBanner,
-              home: const AuthWrapper(),
-            ),
+          return MaterialApp(
+            title: currentConfig.appName,
+            theme: themeProvider.themeData,
+            locale: localeProvider.locale,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            debugShowCheckedModeBanner: currentConfig.showDebugBanner,
+            builder: (context, child) {
+              return EnvironmentBanner(child: child!);
+            },
+            home: const AuthWrapper(),
           );
         },
       ),
